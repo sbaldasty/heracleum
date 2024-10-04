@@ -1,0 +1,6 @@
+name: heracleum
+channels:
+  - defaults
+dependencies:
+  - python
+  - pandas
