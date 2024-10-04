@@ -35,6 +35,7 @@ It looks like we could do poison detection with a [custom strategy implementatio
 - [ ] Demonstrate loss of model performance from a data poisoning attack
 - [ ] Demonstrate loss of model performance from a gradient poisoning attack
 - [ ] Figure out how to hook into gradient aggregation serverside
+- [ ] What model architectures do the paper use, should we explore different ones?
 - [ ] Build out abstractions for data poisoning attacks, gradient poisoning attacks, and poison detection - should attacks be dataset-specific?
 - [ ] Identify and collect data about attacks, detection, success, model performance, etc.
 - [ ] Identify which attacks and detection methods we want to use
