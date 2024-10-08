@@ -5,9 +5,30 @@ Introduction goes here...
 ## Setup
 
 # Links and notes
+
+### Premise from Joe Near
+
+> The defenses usually output a binary decision: "ok" or "not ok." Often,
+the defenses determine the binary output by comparing some statistic
+against a threshold. If the statistic is above the threshold, the
+defense outputs "not ok" and the update is considered malicious (and
+thus excluded from the aggregated model). The attacks they evaluate
+against are usually designed to produce *maximal* reduction in accuracy,
+which means it's usually easy to choose a threshold that includes all
+the honest updates but excludes the malicious ones.
+>
+>I suspect that if the adversary knows the threshold, they could poison
+their data *just enough* to fall right below the threshold, and pass the
+defense check while still reducing accuracy of the final model.
+
+### Links
+
+* [EIFFL: Ensuring Integrity For Federated Learning](https://arxiv.org/pdf/2112.12727)
 * [Installing anaconda on linux](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html#install-linux-silent)
 * [Creating conda projects](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/creating-projects.html)
 * [Introduction to federated learning](https://flower.ai/docs/framework/tutorial-series-what-is-federated-learning.html)
+
+### Notes
 
 Google SearchLabs generated code for modifying gradients with a flower client:
 ```
