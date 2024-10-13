@@ -54,7 +54,7 @@ Here are [flower baselines](https://flower.ai/docs/baselines/how-to-contribute-b
 - [x] Run a conda demo
 - [x] Research flower capabilities
 - [x] Run a flower demo
-- [ ] Script to run the flower demo on the vacc
+- [x] Script to run the flower demo on the vacc
 - [ ] Demonstrate loss of model performance from a gradient poisoning attack
 - [ ] Figure out how to hook into gradient aggregation serverside, demonstrate poison defense
 - [ ] Present gathered data in an interesting way- [ ] Prepare project proposal presentation
