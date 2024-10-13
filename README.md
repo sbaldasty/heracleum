@@ -53,15 +53,14 @@ Here are [flower baselines](https://flower.ai/docs/baselines/how-to-contribute-b
 - [x] Create github repository
 - [x] Run a conda demo
 - [x] Research flower capabilities
-- [ ] Run a flower demo
+- [x] Run a flower demo
 - [ ] Script to run the flower demo on the vacc
-- [ ] Demonstrate loss of model performance from a data poisoning attack
 - [ ] Demonstrate loss of model performance from a gradient poisoning attack
-- [ ] Figure out how to hook into gradient aggregation serverside
-- [ ] Prepare project proposal presentation
+- [ ] Figure out how to hook into gradient aggregation serverside, demonstrate poison defense
+- [ ] Present gathered data in an interesting way- [ ] Prepare project proposal presentation
+- [ ] Demonstrate loss of model performance from a data poisoning attack
 - [ ] What model architectures do the paper use, should we explore different ones?
 - [ ] Build out abstractions for data poisoning attacks, gradient poisoning attacks, and poison detection - should attacks be dataset-specific?
 - [ ] Identify and collect data about attacks, detection, success, model performance, etc.
 - [ ] Identify which attacks and detection methods we want to use
 - [ ] Implement them (expand into multiple tasks)
-- [ ] Present gathered data in an interesting way
