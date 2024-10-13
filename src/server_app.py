@@ -6,7 +6,7 @@ from flwr.common import Context, Metrics, ndarrays_to_parameters
 from flwr.server import ServerApp, ServerAppComponents, ServerConfig
 from flwr.server.strategy import FedAvg
 
-from heracleum.task import Net, get_weights
+from src.task import Net, get_weights
 
 
 # Define metric aggregation function
