@@ -47,6 +47,8 @@ class MyClient(fl.client.NumPyClient):
 
 It looks like we could do poison detection with a [custom strategy implementation](https://flower.ai/docs/framework/how-to-implement-strategies.html) on the server.
 
+Here are [flower baselines](https://flower.ai/docs/baselines/how-to-contribute-baselines.html). They are reproductions of the results of papers. We should consider contributing one for EIFFeL since we will be reproducing a portion of their work.
+
 # Tasks
 - [x] Create github repository
 - [x] Run a conda demo
@@ -56,6 +58,7 @@ It looks like we could do poison detection with a [custom strategy implementatio
 - [ ] Demonstrate loss of model performance from a data poisoning attack
 - [ ] Demonstrate loss of model performance from a gradient poisoning attack
 - [ ] Figure out how to hook into gradient aggregation serverside
+- [ ] Prepare project proposal presentation
 - [ ] What model architectures do the paper use, should we explore different ones?
 - [ ] Build out abstractions for data poisoning attacks, gradient poisoning attacks, and poison detection - should attacks be dataset-specific?
 - [ ] Identify and collect data about attacks, detection, success, model performance, etc.
