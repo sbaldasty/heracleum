@@ -7,7 +7,7 @@ from flwr.server import ServerApp, ServerAppComponents, ServerConfig
 from flwr.server.strategy import FedAvg
 
 from src.task import Net, get_weights
-
+from src.strategy import AdversarialScenarioStrategyDecorator
 
 # Define metric aggregation function
 def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
@@ -37,9 +37,10 @@ def server_fn(context: Context):
         evaluate_metrics_aggregation_fn=weighted_average,
         initial_parameters=parameters,
     )
+    strategy_decorator = AdversarialScenarioStrategyDecorator(strategy)
     config = ServerConfig(num_rounds=num_rounds)
 
-    return ServerAppComponents(strategy=strategy, config=config)
+    return ServerAppComponents(strategy=strategy_decorator, config=config)
 
 
 # Create ServerApp
