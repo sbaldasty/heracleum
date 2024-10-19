@@ -38,11 +38,20 @@ class StrategyDecorator(Strategy):
         return self.delegate.evaluate(server_round, parameters)
 
 
+class ClientAwaitStrategyDecorator(StrategyDecorator):
+
+    def __init__(self, delegate: Strategy, n_clients: int):
+        super().__init__(delegate)
+        self.n_clients = n_clients
+
+    def configure_fit(self, server_round: int, parameters: Parameters, client_manager: ClientManager) -> List[Tuple[ClientProxy, FitIns]]:
+        return [] if client_manager.num_available() < self.n_clients else super().configure_fit(server_round, parameters, client_manager)
+
+
 class AdversarialScenarioStrategyDecorator(StrategyDecorator):
 
     def __init__(self, delegate: Strategy):
         super().__init__(delegate)
-        self.delegate = delegate
         self.client_ids = []
 
     def configure_fit(self, server_round: int, parameters: Parameters, client_manager: ClientManager):
