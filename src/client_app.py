@@ -7,10 +7,13 @@ from flwr.common import Context
 from src.task import Net, get_weights, load_data, set_weights, test, train
 
 
+client_id_counter = 0
+
 # Define Flower Client
 class FlowerClient(NumPyClient):
-    def __init__(self, trainloader, valloader, local_epochs, learning_rate):
+    def __init__(self, client_id, trainloader, valloader, local_epochs, learning_rate):
         self.net = Net()
+        self.client_id = client_id
         self.trainloader = trainloader
         self.valloader = valloader
         self.local_epochs = local_epochs
@@ -51,7 +54,11 @@ def client_fn(context: Context):
     learning_rate = context.run_config["learning-rate"]
 
     # Return Client instance
-    return FlowerClient(trainloader, valloader, local_epochs, learning_rate).to_client()
+    global client_id_counter
+    flower_client = FlowerClient(client_id_counter, trainloader, valloader, local_epochs, learning_rate)
+    client_id_counter += 1
+
+    return flower_client.to_client()
 
 
 # Flower ClientApp
