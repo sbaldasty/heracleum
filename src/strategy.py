@@ -7,6 +7,9 @@ from flwr.common import Scalar
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy import Strategy
+from random import sample
+from src.attack import Attack
+from time import sleep
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -38,6 +41,19 @@ class StrategyDecorator(Strategy):
         return self.delegate.evaluate(server_round, parameters)
 
 
+class RaiseOnFailureStrategyDecorator(StrategyDecorator):
+
+    def aggregate_fit(self, server_round: int, results: List[Tuple[ClientProxy, FitRes]], failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]]) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
+        if failures:
+            raise Exception('A client responded with failure')
+        return super().aggregate_fit(server_round, results, failures)
+
+    def aggregate_evaluate(self, server_round: int, results: List[Tuple[ClientProxy, EvaluateRes]], failures: List[Union[Tuple[ClientProxy, EvaluateRes], BaseException]]) -> Tuple[Optional[float], Dict[str, Scalar]]:
+        if failures:
+            raise Exception('A client responded with failure')
+        return super().aggregate_evaluate(server_round, results, failures)
+
+
 class ClientAwaitStrategyDecorator(StrategyDecorator):
 
     def __init__(self, delegate: Strategy, n_clients: int):
@@ -45,20 +61,28 @@ class ClientAwaitStrategyDecorator(StrategyDecorator):
         self.n_clients = n_clients
 
     def configure_fit(self, server_round: int, parameters: Parameters, client_manager: ClientManager) -> List[Tuple[ClientProxy, FitIns]]:
-        return [] if client_manager.num_available() < self.n_clients else super().configure_fit(server_round, parameters, client_manager)
+        while client_manager.num_available() < self.n_clients:
+            sleep(2.0)
+        return super().configure_fit(server_round, parameters, client_manager)
 
 
 class AdversarialScenarioStrategyDecorator(StrategyDecorator):
 
-    def __init__(self, delegate: Strategy):
+    def __init__(self, delegate: Strategy, attack: Attack, n_corrupt_parties: int):
         super().__init__(delegate)
-        self.client_ids = []
-
-    def configure_fit(self, server_round: int, parameters: Parameters, client_manager: ClientManager):
-        for s, proxy in client_manager.all().items():
-            if s not in self.client_ids:
-                self.client_ids.append(s)
-                print(f'Found {s} / {proxy.node_id}')
-
-        print(f'All available clients: {self.client_ids}')
+        self.attack = attack
+        self.corrupt_party_ids = [None] * n_corrupt_parties
+        
+    def configure_fit(self, server_round: int, parameters: Parameters, client_manager: ClientManager) -> List[Tuple[ClientProxy, FitIns]]:
+        if server_round == 1:
+            node_ids = [x.node_id for x in client_manager.all().values()]
+            self.corrupt_party_ids = sample(node_ids, len(self.corrupt_party_ids))
         return super().configure_fit(server_round, parameters, client_manager)
+
+    def aggregate_fit(self, server_round: int, results: List[Tuple[ClientProxy, FitRes]], failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]]) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
+        poisoned_results = []
+        for proxy, res in results:
+            if proxy.node_id in self.corrupt_party_ids:
+                res = self.attack.poison_gradients(proxy, results)
+            poisoned_results.append((proxy, res))
+        return super().aggregate_fit(server_round, poisoned_results, failures)

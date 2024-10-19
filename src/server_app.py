@@ -6,8 +6,9 @@ from flwr.common import Context, Metrics, ndarrays_to_parameters
 from flwr.server import ServerApp, ServerAppComponents, ServerConfig
 from flwr.server.strategy import FedAvg
 
+from src.attack import SignFlipAttack
 from src.task import Net, get_weights
-from src.strategy import AdversarialScenarioStrategyDecorator, ClientAwaitStrategyDecorator
+from src.strategy import AdversarialScenarioStrategyDecorator, ClientAwaitStrategyDecorator, RaiseOnFailureStrategyDecorator
 
 # Define metric aggregation function
 def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
@@ -30,6 +31,7 @@ def server_fn(context: Context):
     parameters = ndarrays_to_parameters(ndarrays)
 
     # Define the strategy
+    attack = SignFlipAttack()
     strategy = FedAvg(
         fraction_fit=1.0,
         fraction_evaluate=context.run_config["fraction-evaluate"],
@@ -37,8 +39,8 @@ def server_fn(context: Context):
         evaluate_metrics_aggregation_fn=weighted_average,
         initial_parameters=parameters,
     )
-    strategy = AdversarialScenarioStrategyDecorator(strategy)
-    # TODO Parameterize 10
+    strategy = AdversarialScenarioStrategyDecorator(strategy, attack, 2)
+    strategy = RaiseOnFailureStrategyDecorator(strategy)
     strategy = ClientAwaitStrategyDecorator(strategy, 10)
     config = ServerConfig(num_rounds=num_rounds)
 
