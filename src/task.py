@@ -91,10 +91,15 @@ def train(net, trainloader, valloader, epochs, learning_rate, device):
 
     val_loss, val_acc = test(net, valloader, device)
 
+    # TODO Extract this to another place
+    with open('./out/result.csv', 'w') as file:
+        file.write(f'{val_acc}')
+
     results = {
         "val_loss": val_loss,
         "val_accuracy": val_acc,
     }
+
     return results
 
 

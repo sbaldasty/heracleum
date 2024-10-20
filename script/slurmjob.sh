@@ -15,4 +15,3 @@
 
 conda env update heracleum/environment.yaml
 flwr run .
-echo "Hello, world!" > heracleum/out/example.txt
