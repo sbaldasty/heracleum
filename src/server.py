@@ -38,6 +38,7 @@ def server_fn(context: Context):
         min_available_clients=2,
         evaluate_metrics_aggregation_fn=weighted_average,
         initial_parameters=parameters,
+        inplace=False
     )
     strategy = AdversarialScenarioStrategyDecorator(strategy, attack, 2)
     strategy = RaiseOnFailureStrategyDecorator(strategy)
