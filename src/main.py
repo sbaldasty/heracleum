@@ -7,8 +7,12 @@ from dataclasses import dataclass
 from typing import List, Tuple
 
 from flwr.common import Context, Metrics, ndarrays_to_parameters
-from flwr.server import ServerApp, ServerAppComponents, ServerConfig
+from flwr.server import ServerApp, ServerAppComponents, ServerConfig, Server
 from flwr.server.strategy import FedAvg
+from flwr.server.client_manager import SimpleClientManager
+
+import src
+
 
 from src.attack import SignFlipAttack
 from src.task import Net, get_weights
@@ -32,6 +36,7 @@ def default_fit_config():
 def start_server():
     strategy = fl.server.strategy.FedAvg(fit_config=default_fit_config)
     fl.server.start_server(
+        server=Server(SimpleClientManager() ),
         server_address="localhost:8080",
         config=default_fit_config(),
         strategy=strategy
@@ -47,9 +52,33 @@ def start_simulation():
     )
 
 if __name__ == "__main__":
+    ndarrays = get_weights(Net())
+    parameters = ndarrays_to_parameters(ndarrays)
+
+    attack = SignFlipAttack()
+    strategy = FedAvg(
+        fraction_fit=1.0,
+        fraction_evaluate=0.5,
+        min_available_clients=2,
+        evaluate_metrics_aggregation_fn=src.server.weighted_average,
+        initial_parameters=parameters,
+    )
+    strategy = AdversarialScenarioStrategyDecorator(strategy, attack, 2)
+    strategy = RaiseOnFailureStrategyDecorator(strategy)
+    strategy = ClientAwaitStrategyDecorator(strategy, 10)
+
+    server = Server(SimpleClientManager(), strategy)
     # Start server and simulation concurrently
-    server_thread = threading.Thread(target=start_server)
-    client_thread = threading.Thread(target=start_simulation)
+    server_thread = threading.Thread(target=lambda: fl.server.start_server(
+        server=server,
+        server_address="localhost:8080",
+        config=default_fit_config(),
+        strategy=strategy))
+
+    client_thread = threading.Thread(target=lambda: fl.simulation.start_simulation(
+        client_fn=client_fn,
+        num_clients=10,  # Simulate 10 clients
+        config=ServerConfig(num_rounds=3)))
 
     # Start both threads
     server_thread.start()
