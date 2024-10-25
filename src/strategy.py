@@ -9,7 +9,6 @@ from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy import Strategy
 from random import sample
 from src.attack import Attack
-from time import sleep
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -52,18 +51,6 @@ class RaiseOnFailureStrategyDecorator(StrategyDecorator):
         if failures:
             raise Exception('A client responded with failure')
         return super().aggregate_evaluate(server_round, results, failures)
-
-
-class ClientAwaitStrategyDecorator(StrategyDecorator):
-
-    def __init__(self, delegate: Strategy, n_clients: int):
-        super().__init__(delegate)
-        self.n_clients = n_clients
-
-    def configure_fit(self, server_round: int, parameters: Parameters, client_manager: ClientManager) -> List[Tuple[ClientProxy, FitIns]]:
-        while client_manager.num_available() < self.n_clients:
-            sleep(2.0)
-        return super().configure_fit(server_round, parameters, client_manager)
 
 
 class AdversarialScenarioStrategyDecorator(StrategyDecorator):

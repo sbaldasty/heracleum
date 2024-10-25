@@ -1,13 +1,16 @@
-from typing import List, Tuple
-
-from flwr.common import Metrics, ndarrays_to_parameters
-
-from src.attack import SignFlipAttack
-from src.task import Net, get_weights
-from src.strategy import AdversarialScenarioStrategyDecorator, ClientAwaitStrategyDecorator, RaiseOnFailureStrategyDecorator
+from flwr.common import Metrics
+from flwr.common import ndarrays_to_parameters
 from flwr.server import Server
 from flwr.server.strategy import FedAvg
 from flwr.server.client_manager import SimpleClientManager
+from src.attack import SignFlipAttack
+from src.strategy import AdversarialScenarioStrategyDecorator
+from src.strategy import RaiseOnFailureStrategyDecorator
+from src.task import Net
+from src.task import get_weights
+from typing import List
+from typing import Tuple
+
 
 # Define metric aggregation function
 def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
@@ -33,6 +36,5 @@ def make_cifar_server():
 
     strategy = AdversarialScenarioStrategyDecorator(strategy, attack, 2)
     strategy = RaiseOnFailureStrategyDecorator(strategy)
-    #strategy = ClientAwaitStrategyDecorator(strategy, 10)
 
-    return Server(SimpleClientManager(), strategy)
+    return Server(client_manager=SimpleClientManager(), strategy=strategy)
