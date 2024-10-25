@@ -6,14 +6,10 @@ from flwr.common import Context
 
 from src.task import Net, get_weights, load_data, set_weights, test, train
 
-
-client_id_counter = 0
-
 # Define Flower Client
 class FlowerClient(NumPyClient):
-    def __init__(self, client_id, trainloader, valloader, local_epochs, learning_rate):
+    def __init__(self, trainloader, valloader, local_epochs, learning_rate):
         self.net = Net()
-        self.client_id = client_id
         self.trainloader = trainloader
         self.valloader = valloader
         self.local_epochs = local_epochs
@@ -46,7 +42,6 @@ def client_fn(context: Context):
     # Read the node_config to fetch data partition associated to this node
     partition_id = int(context.node_config["partition-id"])
     num_partitions = int(context.node_config["num-partitions"])
-    print(f'ASDF ASDF {partition_id=} and {num_partitions=}')
     # Read run_config to fetch hyperparameters relevant to this run
     batch_size = 32
     trainloader, valloader = load_data(partition_id, num_partitions, batch_size)
@@ -54,10 +49,7 @@ def client_fn(context: Context):
     learning_rate = 0.1
 
     # Return Client instance
-    global client_id_counter
-    flower_client = FlowerClient(client_id_counter, trainloader, valloader, local_epochs, learning_rate)
-    client_id_counter += 1
-
+    flower_client = FlowerClient(trainloader, valloader, local_epochs, learning_rate)
     return flower_client.to_client()
 
 
