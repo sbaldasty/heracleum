@@ -22,19 +22,24 @@ def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
     return {"accuracy": sum(accuracies) / sum(examples)}
 
 
-def make_cifar_server():
+def make_cifar_server(
+        fraction_fit=1.0,
+        fraction_evaluate=0.5,
+        n_clients=10,
+        n_corrupt_clients=2):
+
     ndarrays = get_weights(Net())
     parameters = ndarrays_to_parameters(ndarrays)
 
     attack = SignFlipAttack()
     strategy = FedAvg(
-        fraction_fit=1.0,
-        fraction_evaluate=0.5,
-        min_available_clients=10,
+        fraction_fit=fraction_fit,
+        fraction_evaluate=fraction_evaluate,
+        min_available_clients=n_clients,
         evaluate_metrics_aggregation_fn=weighted_average,
         initial_parameters=parameters)
 
-    strategy = AdversarialScenarioStrategyDecorator(strategy, attack, 2)
+    strategy = AdversarialScenarioStrategyDecorator(strategy, attack, n_corrupt_clients)
     strategy = RaiseOnFailureStrategyDecorator(strategy)
 
     return Server(client_manager=SimpleClientManager(), strategy=strategy)
