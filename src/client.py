@@ -1,7 +1,7 @@
 """pytorchexample: A Flower / PyTorch app."""
 
 import torch
-from flwr.client import ClientApp, NumPyClient
+from flwr.client import NumPyClient
 from flwr.common import Context
 
 from src.task import Net, get_weights, load_data, set_weights, test, train
@@ -51,7 +51,3 @@ def client_fn(context: Context):
     # Return Client instance
     flower_client = FlowerClient(trainloader, valloader, local_epochs, learning_rate)
     return flower_client.to_client()
-
-
-# Flower ClientApp
-app = ClientApp(client_fn)
