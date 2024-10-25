@@ -14,4 +14,4 @@
 #SBATCH --output=/gpfs2/scratch/sbaldast/heracleum/logs/outs/%A.out 
 
 conda env update heracleum/environment.yaml
-flwr run .
+python src/_poisoneffect.py
