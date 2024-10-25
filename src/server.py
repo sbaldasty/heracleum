@@ -1,14 +1,13 @@
-"""pytorchexample: A Flower / PyTorch app."""
-
 from typing import List, Tuple
 
-from flwr.common import Context, Metrics, ndarrays_to_parameters
-from flwr.server import ServerApp, ServerAppComponents, ServerConfig
-from flwr.server.strategy import FedAvg
+from flwr.common import Metrics, ndarrays_to_parameters
 
 from src.attack import SignFlipAttack
 from src.task import Net, get_weights
 from src.strategy import AdversarialScenarioStrategyDecorator, ClientAwaitStrategyDecorator, RaiseOnFailureStrategyDecorator
+from flwr.server import Server
+from flwr.server.strategy import FedAvg
+from flwr.server.client_manager import SimpleClientManager
 
 # Define metric aggregation function
 def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
@@ -20,33 +19,20 @@ def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
     return {"accuracy": sum(accuracies) / sum(examples)}
 
 
-def server_fn(context: Context):
-    """Construct components that set the ServerApp behaviour."""
-
-    # Read from config
-    num_rounds = context.run_config["num-server-rounds"]
-
-    # Initialize model parameters
+def make_cifar_server():
     ndarrays = get_weights(Net())
     parameters = ndarrays_to_parameters(ndarrays)
 
-    # Define the strategy
     attack = SignFlipAttack()
     strategy = FedAvg(
         fraction_fit=1.0,
-        fraction_evaluate=context.run_config["fraction-evaluate"],
-        min_available_clients=2,
+        fraction_evaluate=0.5,
+        min_available_clients=10,
         evaluate_metrics_aggregation_fn=weighted_average,
-        initial_parameters=parameters,
-        inplace=False
-    )
+        initial_parameters=parameters)
+
     strategy = AdversarialScenarioStrategyDecorator(strategy, attack, 2)
     strategy = RaiseOnFailureStrategyDecorator(strategy)
-    strategy = ClientAwaitStrategyDecorator(strategy, 10)
-    config = ServerConfig(num_rounds=num_rounds)
+    #strategy = ClientAwaitStrategyDecorator(strategy, 10)
 
-    return ServerAppComponents(strategy=strategy, config=config)
-
-
-# Create ServerApp
-app = ServerApp(server_fn=server_fn)
+    return Server(SimpleClientManager(), strategy)

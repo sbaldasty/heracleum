@@ -44,14 +44,14 @@ def client_fn(context: Context):
     """Construct a Client that will be run in a ClientApp."""
 
     # Read the node_config to fetch data partition associated to this node
-    partition_id = context.node_config["partition-id"]
-    num_partitions = context.node_config["num-partitions"]
-
+    partition_id = int(context.node_config["partition-id"])
+    num_partitions = int(context.node_config["num-partitions"])
+    print(f'ASDF ASDF {partition_id=} and {num_partitions=}')
     # Read run_config to fetch hyperparameters relevant to this run
-    batch_size = context.run_config["batch-size"]
+    batch_size = 32
     trainloader, valloader = load_data(partition_id, num_partitions, batch_size)
-    local_epochs = context.run_config["local-epochs"]
-    learning_rate = context.run_config["learning-rate"]
+    local_epochs = 1
+    learning_rate = 0.1
 
     # Return Client instance
     global client_id_counter
