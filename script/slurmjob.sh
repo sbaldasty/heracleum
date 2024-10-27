@@ -5,7 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gres=gpu:1
-#SBATCH --mem=1G
+#SBATCH --mem=4G
 #SBATCH --cpus-per-task=1
 #SBATCH --time=01-23:59:59
 #SBATCH --job-name=heracleum

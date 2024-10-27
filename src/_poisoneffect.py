@@ -16,7 +16,7 @@ OUTPUT_FILE = './out/poisoneffect.csv'
 N_CLIENTS = 10
 N_ROUNDS = 20
 N_CORRUPT_CLIENTS_START = 0
-N_CORRUPT_CLIENTS_END = 10
+N_CORRUPT_CLIENTS_END = 5
 N_CORRUPT_CLIENTS_STEP = 1
 
 
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     experiments = []
 
     for n_corrupt_clients in range(N_CORRUPT_CLIENTS_START, N_CORRUPT_CLIENTS_END + 1, N_CORRUPT_CLIENTS_STEP):
-        server, model = make_cifar_server(n_clients=N_CLIENTS)
+        server, model = make_cifar_server(n_clients=N_CLIENTS, n_corrupt_clients=n_corrupt_clients)
         start_simulation(
             client_fn=client_fn,
             num_clients=N_CLIENTS,
