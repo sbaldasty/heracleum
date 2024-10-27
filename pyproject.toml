@@ -1,3 +1,10 @@
 [project]
-name = "heracleum"
+name = "src"
 version = "0.1"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["src"]
