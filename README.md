@@ -56,7 +56,7 @@ Here are [flower baselines](https://flower.ai/docs/baselines/how-to-contribute-b
 - [x] Run a flower demo
 - [x] Script to run the flower demo on the vacc
 - [x] Evaluate performance of models
-- [ ] Collect experiment data in a csv file
+- [x] Collect experiment data in a csv file
 - [ ] Demonstrate loss of model performance from a gradient poisoning attack
 - [ ] Figure out how to hook into gradient aggregation serverside, demonstrate poison defense
 - [ ] Present gathered data in an interesting way
