@@ -5,6 +5,7 @@ dependencies:
   - python
   - pip
   - pip:
+    - dataclass-csv
     - flwr[simulation]
     - flwr-datasets[vision]
     - torch
