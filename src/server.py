@@ -5,6 +5,7 @@ from flwr.server.strategy import FedAvg
 from flwr.server.client_manager import SimpleClientManager
 from src.attack import SignFlipAttack
 from src.strategy import AdversarialScenarioStrategyDecorator
+from src.strategy import ModelUpdateStrategyDecorator
 from src.strategy import RaiseOnFailureStrategyDecorator
 from src.task import Net
 from src.task import get_weights
@@ -28,10 +29,11 @@ def make_cifar_server(
         n_clients=10,
         n_corrupt_clients=2):
 
-    ndarrays = get_weights(Net())
+    model = Net()
+    ndarrays = get_weights(model)
     parameters = ndarrays_to_parameters(ndarrays)
 
-    attack = SignFlipAttack()
+    attack = SignFlipAttack() # TODO Parameterize
     strategy = FedAvg(
         fraction_fit=fraction_fit,
         fraction_evaluate=fraction_evaluate,
@@ -40,6 +42,7 @@ def make_cifar_server(
         initial_parameters=parameters)
 
     strategy = AdversarialScenarioStrategyDecorator(strategy, attack, n_corrupt_clients)
+    strategy = ModelUpdateStrategyDecorator(strategy, model)
     strategy = RaiseOnFailureStrategyDecorator(strategy)
 
-    return Server(client_manager=SimpleClientManager(), strategy=strategy)
+    return Server(client_manager=SimpleClientManager(), strategy=strategy), model

@@ -1,17 +1,23 @@
+import numpy as np
+import torch
+
 from flwr.common import EvaluateIns
 from flwr.common import EvaluateRes
 from flwr.common import FitIns
 from flwr.common import FitRes
 from flwr.common import Parameters
 from flwr.common import Scalar
+from flwr.common import parameters_to_ndarrays
 from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy import Strategy
 from random import sample
 from src.attack import Attack
+from torch.nn import Module
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import OrderedDict
 from typing import Tuple
 from typing import Union
 
@@ -51,6 +57,23 @@ class RaiseOnFailureStrategyDecorator(StrategyDecorator):
         if failures:
             raise Exception('A client responded with failure')
         return super().aggregate_evaluate(server_round, results, failures)
+
+
+class ModelUpdateStrategyDecorator(StrategyDecorator):
+
+    def __init__(self, delegate: Strategy, model: Module):
+        super().__init__(delegate)
+        self.model = model
+
+    def aggregate_fit(self, server_round: int, results: List[Tuple[ClientProxy, FitRes]], failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]]) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
+        aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
+        if aggregated_parameters is not None:
+            print(f"Saving round {server_round} aggregated_parameters...")
+            aggregated_ndarrays: List[np.ndarray] = parameters_to_ndarrays(aggregated_parameters)
+            params_dict = zip(self.model.state_dict().keys(), aggregated_ndarrays)
+            state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
+            self.model.load_state_dict(state_dict, strict=True)
+        return aggregated_parameters, aggregated_metrics
 
 
 class AdversarialScenarioStrategyDecorator(StrategyDecorator):

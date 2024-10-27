@@ -43,7 +43,7 @@ def set_weights(net, parameters):
 
 
 fds = None  # Cache FederatedDataset
-
+cifar_test_dataset = None
 
 def load_data(partition_id: int, num_partitions: int, batch_size: int):
     """Load partition CIFAR10 data."""
@@ -55,6 +55,7 @@ def load_data(partition_id: int, num_partitions: int, batch_size: int):
             dataset="uoft-cs/cifar10",
             partitioners={"train": partitioner},
         )
+
     partition = fds.load_partition(partition_id)
     # Divide data on each node: 80% train, 20% test
     partition_train_test = partition.train_test_split(test_size=0.2, seed=42)
@@ -66,6 +67,12 @@ def load_data(partition_id: int, num_partitions: int, batch_size: int):
         """Apply transforms to the partition from FederatedDataset."""
         batch["img"] = [pytorch_transforms(img) for img in batch["img"]]
         return batch
+
+    # TODO I think I need to peel off the test data on each client like this?
+    # But it should probably be done in a more sensible way?
+    global cifar_test_dataset
+    if cifar_test_dataset is None:
+        cifar_test_dataset = fds.load_split("test").with_transform(apply_transforms)
 
     partition_train_test = partition_train_test.with_transform(apply_transforms)
     trainloader = DataLoader(
