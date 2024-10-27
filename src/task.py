@@ -122,6 +122,7 @@ def test(net, testloader):
         for batch in testloader:
             images = batch["img"].to(get_device())
             labels = batch["label"].to(get_device())
+            net.to(get_device())
             outputs = net(images)
             loss += criterion(outputs, labels).item()
             correct += (torch.max(outputs.data, 1)[1] == labels).sum().item()

@@ -56,7 +56,8 @@ if __name__ == '__main__':
             client_fn=client_fn,
             num_clients=N_CLIENTS,
             server=server,
-            config=ServerConfig(num_rounds=N_ROUNDS))
+            config=ServerConfig(num_rounds=N_ROUNDS),
+            client_resources={'num_cpus': 1, 'num_gpus': 1})
 
         loss, accuracy = test(model.to(get_device()), test_loader)
         experiments.append(Experiment(
