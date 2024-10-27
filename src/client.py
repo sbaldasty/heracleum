@@ -14,7 +14,6 @@ class FlowerClient(NumPyClient):
         self.valloader = valloader
         self.local_epochs = local_epochs
         self.lr = learning_rate
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def fit(self, parameters, config):
         """Train the model with data of this client."""
@@ -24,15 +23,14 @@ class FlowerClient(NumPyClient):
             self.trainloader,
             self.valloader,
             self.local_epochs,
-            self.lr,
-            self.device,
+            self.lr
         )
         return get_weights(self.net), len(self.trainloader.dataset), results
 
     def evaluate(self, parameters, config):
         """Evaluate the model on the data this client has."""
         set_weights(self.net, parameters)
-        loss, accuracy = test(self.net, self.valloader, self.device)
+        loss, accuracy = test(self.net, self.valloader)
         return loss, len(self.valloader.dataset), {"accuracy": accuracy}
 
 

@@ -32,6 +32,10 @@ class Net(nn.Module):
         return self.fc3(x)
 
 
+def get_device():
+    return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+
 def get_weights(net):
     return [val.cpu().numpy() for _, val in net.state_dict().items()]
 
@@ -82,10 +86,10 @@ def load_data(partition_id: int, num_partitions: int, batch_size: int):
     return trainloader, testloader
 
 
-def train(net, trainloader, valloader, epochs, learning_rate, device):
+def train(net, trainloader, valloader, epochs, learning_rate):
     """Train the model on the training set."""
-    net.to(device)  # move model to GPU if available
-    criterion = torch.nn.CrossEntropyLoss().to(device)
+    net.to(get_device())  # move model to GPU if available
+    criterion = torch.nn.CrossEntropyLoss().to(get_device())
     optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
     net.train()
     for _ in range(epochs):
@@ -93,10 +97,10 @@ def train(net, trainloader, valloader, epochs, learning_rate, device):
             images = batch["img"]
             labels = batch["label"]
             optimizer.zero_grad()
-            criterion(net(images.to(device)), labels.to(device)).backward()
+            criterion(net(images.to(get_device())), labels.to(get_device())).backward()
             optimizer.step()
 
-    val_loss, val_acc = test(net, valloader, device)
+    val_loss, val_acc = test(net, valloader)
 
     # TODO Extract this to another place
     with open('./out/result.csv', 'w') as file:
@@ -110,14 +114,14 @@ def train(net, trainloader, valloader, epochs, learning_rate, device):
     return results
 
 
-def test(net, testloader, device):
+def test(net, testloader):
     """Validate the model on the test set."""
     criterion = torch.nn.CrossEntropyLoss()
     correct, loss = 0, 0.0
     with torch.no_grad():
         for batch in testloader:
-            images = batch["img"].to(device)
-            labels = batch["label"].to(device)
+            images = batch["img"].to(get_device())
+            labels = batch["label"].to(get_device())
             outputs = net(images)
             loss += criterion(outputs, labels).item()
             correct += (torch.max(outputs.data, 1)[1] == labels).sum().item()
