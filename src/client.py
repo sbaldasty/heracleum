@@ -44,7 +44,7 @@ def client_fn(context: Context):
     batch_size = 32
     trainloader, valloader = load_data(partition_id, num_partitions, batch_size)
     local_epochs = 1
-    learning_rate = 0.1
+    learning_rate = 0.01
 
     # Return Client instance
     flower_client = FlowerClient(trainloader, valloader, local_epochs, learning_rate)
