@@ -5,20 +5,29 @@ from flwr.simulation import start_simulation
 from flwr_datasets import FederatedDataset
 from flwr_datasets.partitioner import IidPartitioner
 from itertools import product
+from src.attack import GaussianNoiseAttack
+from src.attack import ScalingAttack
 from src.attack import SignFlipAttack
 from src.client import client_fn
 from src.server import make_cifar_server
 from task import get_device
 from task import test
 from torch.utils.data import DataLoader
-from torchvision.transforms import Compose, Normalize, ToTensor
+from torchvision.transforms import Compose
+from torchvision.transforms import Normalize
+from torchvision.transforms import ToTensor
+
 
 OUTPUT_FILE = './out/poisoneffect.csv'
 N_CLIENTS = 10
-N_ROUNDS = 2
+N_ROUNDS = 30
 N_CORRUPT_CLIENTS_START = 0
-N_CORRUPT_CLIENTS_END = 1
+N_CORRUPT_CLIENTS_END = 5
 N_CORRUPT_CLIENTS_STEP = 1
+
+NOISE_ATTACK_MEAN = 0.0
+NOISE_ATTACK_STDEV = 0.5
+SCALING_ATTACK_FACTOR = 2.0
 
 
 @dataclass
@@ -33,7 +42,11 @@ class Experiment:
 
 if __name__ == '__main__':
 
-    attacks = [SignFlipAttack()]
+    attacks = [
+        ('Sign flipping', SignFlipAttack()),
+        (f'Scaling (factor={SCALING_ATTACK_FACTOR})', ScalingAttack(SCALING_ATTACK_FACTOR)),
+        (f'Gaussian noise (mu={NOISE_ATTACK_MEAN}, sigma={NOISE_ATTACK_STDEV})', GaussianNoiseAttack(NOISE_ATTACK_MEAN, NOISE_ATTACK_STDEV))]
+
     corrupt_clients = range(N_CORRUPT_CLIENTS_START, N_CORRUPT_CLIENTS_END + 1, N_CORRUPT_CLIENTS_STEP)
 
     # TODO Somehow reuse this for all the clients
@@ -57,7 +70,8 @@ if __name__ == '__main__':
     experiments = []
 
     for attack, n_corrupt in product(attacks, corrupt_clients):
-        server, model = make_cifar_server(attack, n_clients=N_CLIENTS, n_corrupt_clients=n_corrupt)
+        attack_name, attack_obj = attack
+        server, model = make_cifar_server(attack_obj, n_clients=N_CLIENTS, n_corrupt_clients=n_corrupt)
         start_simulation(
             client_fn=client_fn,
             num_clients=N_CLIENTS,
@@ -70,7 +84,7 @@ if __name__ == '__main__':
             n_clients=N_CLIENTS,
             n_rounds=N_ROUNDS,
             n_corrupt_clients=n_corrupt,
-            attack=attack.__class__.__name__,
+            attack=attack_name,
             loss=loss,
             accuracy=accuracy))
 
