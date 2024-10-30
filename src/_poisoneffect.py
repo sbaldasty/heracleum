@@ -1,9 +1,8 @@
 from dataclass_csv import DataclassWriter
 from dataclasses import dataclass
+from dataset import cifar_dataloaders
 from flwr.server import ServerConfig
 from flwr.simulation import start_simulation
-from flwr_datasets import FederatedDataset
-from flwr_datasets.partitioner import IidPartitioner
 from itertools import product
 from src.attack import GaussianNoiseAttack
 from src.attack import ScalingAttack
@@ -12,10 +11,6 @@ from src.client import client_fn
 from src.server import make_cifar_server
 from task import get_device
 from task import test
-from torch.utils.data import DataLoader
-from torchvision.transforms import Compose
-from torchvision.transforms import Normalize
-from torchvision.transforms import ToTensor
 
 
 OUTPUT_FILE = './out/poisoneffect.csv'
@@ -41,32 +36,13 @@ class Experiment:
 
 
 if __name__ == '__main__':
-
     attacks = [
         ('Sign flipping', SignFlipAttack()),
         (f'Scaling (factor={SCALING_ATTACK_FACTOR})', ScalingAttack(SCALING_ATTACK_FACTOR)),
         (f'Gaussian noise (mu={NOISE_ATTACK_MEAN}, sigma={NOISE_ATTACK_STDEV})', GaussianNoiseAttack(NOISE_ATTACK_MEAN, NOISE_ATTACK_STDEV))]
 
     corrupt_clients = range(N_CORRUPT_CLIENTS_START, N_CORRUPT_CLIENTS_END + 1, N_CORRUPT_CLIENTS_STEP)
-
-    # TODO Somehow reuse this for all the clients
-    partitioner = IidPartitioner(num_partitions=N_CLIENTS)
-    fds = FederatedDataset(
-        dataset="uoft-cs/cifar10",
-        partitioners={"train": partitioner},
-    )
-    pytorch_transforms = Compose(
-        [ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
-    )
-
-    def apply_transforms(batch):
-        """Apply transforms to the partition from FederatedDataset."""
-        batch["img"] = [pytorch_transforms(img) for img in batch["img"]]
-        return batch
-
-    test_dataset = fds.load_split("test").with_transform(apply_transforms)
-    test_loader = DataLoader(test_dataset)
-
+    train_loaders, test_loader = cifar_dataloaders(N_CLIENTS)
     experiments = []
 
     for attack, n_corrupt in product(attacks, corrupt_clients):

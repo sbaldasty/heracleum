@@ -1,10 +1,13 @@
 from flwr.client import NumPyClient
 from flwr.common import Context
 
-from src.task import Net, get_weights, load_data, set_weights
+from src.task import Net, get_weights, set_weights
 from src.task import get_device
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
+
+
+train_loaders = None
 
 
 class FlowerClient(NumPyClient):
@@ -35,17 +38,7 @@ class FlowerClient(NumPyClient):
 
 
 def client_fn(context: Context):
-    """Construct a Client that will be run in a ClientApp."""
-
-    # Read the node_config to fetch data partition associated to this node
+    global train_loaders
     partition_id = int(context.node_config["partition-id"])
-    num_partitions = int(context.node_config["num-partitions"])
-    # Read run_config to fetch hyperparameters relevant to this run
-    batch_size = 32
-    trainloader, _ = load_data(partition_id, num_partitions, batch_size)
-    local_epochs = 1
-    learning_rate = 0.01
-
-    # Return Client instance
-    flower_client = FlowerClient(trainloader, local_epochs, learning_rate)
+    flower_client = FlowerClient(train_loaders[partition_id], local_epochs=1, learning_rate=0.01)
     return flower_client.to_client()
