@@ -4,6 +4,8 @@ from flwr.server import ServerConfig
 from flwr.simulation import start_simulation
 from flwr_datasets import FederatedDataset
 from flwr_datasets.partitioner import IidPartitioner
+from itertools import product
+from src.attack import SignFlipAttack
 from src.client import client_fn
 from src.server import make_cifar_server
 from task import get_device
@@ -11,12 +13,11 @@ from task import test
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Normalize, ToTensor
 
-
 OUTPUT_FILE = './out/poisoneffect.csv'
 N_CLIENTS = 10
-N_ROUNDS = 20
+N_ROUNDS = 2
 N_CORRUPT_CLIENTS_START = 0
-N_CORRUPT_CLIENTS_END = 5
+N_CORRUPT_CLIENTS_END = 1
 N_CORRUPT_CLIENTS_STEP = 1
 
 
@@ -25,11 +26,16 @@ class Experiment:
     n_clients: int
     n_rounds: int
     n_corrupt_clients: int
+    attack: str
     loss: float
     accuracy: float
 
 
 if __name__ == '__main__':
+
+    attacks = [SignFlipAttack()]
+    corrupt_clients = range(N_CORRUPT_CLIENTS_START, N_CORRUPT_CLIENTS_END + 1, N_CORRUPT_CLIENTS_STEP)
+
     # TODO Somehow reuse this for all the clients
     partitioner = IidPartitioner(num_partitions=N_CLIENTS)
     fds = FederatedDataset(
@@ -50,8 +56,8 @@ if __name__ == '__main__':
 
     experiments = []
 
-    for n_corrupt_clients in range(N_CORRUPT_CLIENTS_START, N_CORRUPT_CLIENTS_END + 1, N_CORRUPT_CLIENTS_STEP):
-        server, model = make_cifar_server(n_clients=N_CLIENTS, n_corrupt_clients=n_corrupt_clients)
+    for attack, n_corrupt in product(attacks, corrupt_clients):
+        server, model = make_cifar_server(attack, n_clients=N_CLIENTS, n_corrupt_clients=n_corrupt)
         start_simulation(
             client_fn=client_fn,
             num_clients=N_CLIENTS,
@@ -63,7 +69,8 @@ if __name__ == '__main__':
         experiments.append(Experiment(
             n_clients=N_CLIENTS,
             n_rounds=N_ROUNDS,
-            n_corrupt_clients=n_corrupt_clients,
+            n_corrupt_clients=n_corrupt,
+            attack=attack.__class__.__name__,
             loss=loss,
             accuracy=accuracy))
 
