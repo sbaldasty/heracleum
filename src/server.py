@@ -37,7 +37,7 @@ def make_cifar_server(
         fraction_fit=fraction_fit,
         fraction_evaluate=fraction_evaluate,
         min_available_clients=n_clients,
-        evaluate_metrics_aggregation_fn=weighted_average,
+        #evaluate_metrics_aggregation_fn=weighted_average,
         initial_parameters=parameters)
 
     strategy = AdversarialScenarioStrategyDecorator(strategy, attack, n_corrupt_clients)

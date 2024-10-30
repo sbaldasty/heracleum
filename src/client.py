@@ -1,10 +1,7 @@
-"""pytorchexample: A Flower / PyTorch app."""
-
-import torch
 from flwr.client import NumPyClient
 from flwr.common import Context
 
-from src.task import Net, get_weights, load_data, set_weights, test, train
+from src.task import Net, get_weights, load_data, set_weights, train
 
 # Define Flower Client
 class FlowerClient(NumPyClient):
@@ -18,20 +15,16 @@ class FlowerClient(NumPyClient):
     def fit(self, parameters, config):
         """Train the model with data of this client."""
         set_weights(self.net, parameters)
-        results = train(
+        train(
             self.net,
             self.trainloader,
-            self.valloader,
             self.local_epochs,
             self.lr
         )
-        return get_weights(self.net), len(self.trainloader.dataset), results
+        return get_weights(self.net), len(self.trainloader.dataset), {}
 
     def evaluate(self, parameters, config):
-        """Evaluate the model on the data this client has."""
-        set_weights(self.net, parameters)
-        loss, accuracy = test(self.net, self.valloader)
-        return loss, len(self.valloader.dataset), {"accuracy": accuracy}
+        return 0.0, len(self.trainloader.dataset), {}
 
 
 def client_fn(context: Context):

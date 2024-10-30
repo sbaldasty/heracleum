@@ -86,7 +86,7 @@ def load_data(partition_id: int, num_partitions: int, batch_size: int):
     return trainloader, testloader
 
 
-def train(net, trainloader, valloader, epochs, learning_rate):
+def train(net, trainloader, epochs, learning_rate):
     """Train the model on the training set."""
     net.to(get_device())  # move model to GPU if available
     criterion = torch.nn.CrossEntropyLoss().to(get_device())
@@ -99,15 +99,6 @@ def train(net, trainloader, valloader, epochs, learning_rate):
             optimizer.zero_grad()
             criterion(net(images.to(get_device())), labels.to(get_device())).backward()
             optimizer.step()
-
-    val_loss, val_acc = test(net, valloader)
-
-    results = {
-        "val_loss": val_loss,
-        "val_accuracy": val_acc,
-    }
-
-    return results
 
 
 def test(net, testloader):
