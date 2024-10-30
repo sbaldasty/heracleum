@@ -1,9 +1,12 @@
 from flwr.client import NumPyClient
 from flwr.common import Context
 
-from src.task import Net, get_weights, load_data, set_weights, train
+from src.task import Net, get_weights, load_data, set_weights
+from src.task import get_device
+from torch.nn import CrossEntropyLoss
+from torch.optim import SGD
 
-# Define Flower Client
+
 class FlowerClient(NumPyClient):
     def __init__(self, trainloader, valloader, local_epochs, learning_rate):
         self.net = Net()
@@ -13,14 +16,19 @@ class FlowerClient(NumPyClient):
         self.lr = learning_rate
 
     def fit(self, parameters, config):
-        """Train the model with data of this client."""
         set_weights(self.net, parameters)
-        train(
-            self.net,
-            self.trainloader,
-            self.local_epochs,
-            self.lr
-        )
+        self.net.to(get_device())
+        criterion = CrossEntropyLoss().to(get_device())
+        optimizer = SGD(self.net.parameters(), lr=self.lr, momentum=0.9)
+        self.net.train()
+        for _ in range(self.local_epochs):
+            for batch in self.trainloader:
+                images = batch["img"]
+                labels = batch["label"]
+                optimizer.zero_grad()
+                criterion(self.net(images.to(get_device())), labels.to(get_device())).backward()
+                optimizer.step()
+
         return get_weights(self.net), len(self.trainloader.dataset), {}
 
     def evaluate(self, parameters, config):
