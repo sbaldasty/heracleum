@@ -49,7 +49,9 @@ It looks like we could do poison detection with a [custom strategy implementatio
 
 Here are [flower baselines](https://flower.ai/docs/baselines/how-to-contribute-baselines.html). They are reproductions of the results of papers. We should consider contributing one for EIFFeL since we will be reproducing a portion of their work.
 
+
 # Tasks
+## Project proposal presentation
 - [x] Create github repository
 - [x] Run a conda demo
 - [x] Research flower capabilities
@@ -57,13 +59,20 @@ Here are [flower baselines](https://flower.ai/docs/baselines/how-to-contribute-b
 - [x] Script to run the flower demo on the vacc
 - [x] Evaluate performance of models
 - [x] Collect experiment data in a csv file
-- [ ] Demonstrate loss of model performance from a gradient poisoning attack
-- [ ] Figure out how to hook into gradient aggregation serverside, demonstrate poison defense
-- [ ] Present gathered data in an interesting way
+- [x] Demonstrate loss of model performance from a gradient poisoning attack
+- [x] Present attack efficacy in an interesting way
+- [ ] Prepare project proposal writeup
+- [ ] Figure out how to hook into gradient aggregation serverside
 - [ ] Prepare project proposal presentation
-- [ ] Demonstrate loss of model performance from a data poisoning attack
+- [ ] Demonstrate the ball-norm poison defense
+## Final project 
 - [ ] What model architectures do the paper use, should we explore different ones?
 - [ ] Build out abstractions for data poisoning attacks, gradient poisoning attacks, and poison detection - should attacks be dataset-specific?
 - [ ] Identify and collect data about attacks, detection, success, model performance, etc.
 - [ ] Identify which attacks and detection methods we want to use
 - [ ] Implement them (expand into multiple tasks)
+## Sidequests
+- [ ] Unit test the attacks
+- [ ] Document the poison effect notebook
+- [ ] Include a data poisoning attack (versus a gradient one)
+- [ ] 
