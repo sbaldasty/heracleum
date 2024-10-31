@@ -1,6 +1,5 @@
 from dataclass_csv import DataclassWriter
 from dataclasses import dataclass
-from dataset import cifar_dataloaders
 from flwr.server import ServerConfig
 from flwr.simulation import start_simulation
 from itertools import product
@@ -12,12 +11,11 @@ from src.server import make_cifar_server
 from task import get_device
 from task import test
 
-
 OUTPUT_FILE = './out/poisoneffect.csv'
 N_CLIENTS = 10
-N_ROUNDS = 1
-N_CORRUPT_CLIENTS_START = 1
-N_CORRUPT_CLIENTS_END = 1
+N_ROUNDS = 30
+N_CORRUPT_CLIENTS_START = 0
+N_CORRUPT_CLIENTS_END = 5
 N_CORRUPT_CLIENTS_STEP = 1
 
 NOISE_ATTACK_MEAN = 0.0
@@ -42,9 +40,7 @@ if __name__ == '__main__':
         (f'Gaussian noise (mu={NOISE_ATTACK_MEAN}, sigma={NOISE_ATTACK_STDEV})', GaussianNoiseAttack(NOISE_ATTACK_MEAN, NOISE_ATTACK_STDEV))]
 
     corrupt_clients = range(N_CORRUPT_CLIENTS_START, N_CORRUPT_CLIENTS_END + 1, N_CORRUPT_CLIENTS_STEP)
-    train_loaders, test_loader = cifar_dataloaders(N_CLIENTS)
     experiments = []
-
     for attack, n_corrupt in product(attacks, corrupt_clients):
         attack_name, attack_obj = attack
         server, model = make_cifar_server(attack_obj, n_clients=N_CLIENTS, n_corrupt_clients=n_corrupt)
@@ -55,7 +51,7 @@ if __name__ == '__main__':
             config=ServerConfig(num_rounds=N_ROUNDS),
             client_resources={'num_cpus': 1, 'num_gpus': 1})
 
-        loss, accuracy = test(model.to(get_device()), test_loader)
+        loss, accuracy = test(model.to(get_device()), N_CLIENTS)
         experiments.append(Experiment(
             n_clients=N_CLIENTS,
             n_rounds=N_ROUNDS,

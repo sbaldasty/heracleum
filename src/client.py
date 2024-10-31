@@ -1,13 +1,10 @@
+from dataset import cifar_dataloaders
 from flwr.client import NumPyClient
 from flwr.common import Context
-
 from src.task import Net, get_weights, set_weights
 from src.task import get_device
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
-
-
-train_loaders = None
 
 
 class FlowerClient(NumPyClient):
@@ -25,8 +22,8 @@ class FlowerClient(NumPyClient):
         self.net.train()
         for _ in range(self.local_epochs):
             for batch in self.trainloader:
-                images = batch["img"]
-                labels = batch["label"]
+                #print(f'BATCH BATCH {batch.}')
+                images, labels = batch
                 optimizer.zero_grad()
                 criterion(self.net(images.to(get_device())), labels.to(get_device())).backward()
                 optimizer.step()
@@ -38,7 +35,7 @@ class FlowerClient(NumPyClient):
 
 
 def client_fn(context: Context):
-    global train_loaders
-    partition_id = int(context.node_config["partition-id"])
+    partition_id = int(context.node_config['partition-id'])
+    train_loaders, test_loader = cifar_dataloaders(int(context.node_config['num-partitions']))
     flower_client = FlowerClient(train_loaders[partition_id], local_epochs=1, learning_rate=0.01)
     return flower_client.to_client()

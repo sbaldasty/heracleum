@@ -1,6 +1,7 @@
 """pytorchexample: A Flower / PyTorch app."""
 
 from collections import OrderedDict
+from dataset import cifar_dataloaders
 
 import torch
 import torch.nn as nn
@@ -42,18 +43,20 @@ def set_weights(net, parameters):
     net.load_state_dict(state_dict, strict=True)
 
 
-def test(net, testloader):
+def test(net, n_clients):
     """Validate the model on the test set."""
+    train_loaders, test_loader = cifar_dataloaders(n_clients)
     criterion = torch.nn.CrossEntropyLoss()
     correct, loss = 0, 0.0
     with torch.no_grad():
-        for batch in testloader:
-            images = batch["img"].to(get_device())
-            labels = batch["label"].to(get_device())
+        for batch in test_loader:
+            images, labels = batch
+            images = images.to(get_device())
+            labels = labels.to(get_device())
             net.to(get_device())
             outputs = net(images)
             loss += criterion(outputs, labels).item()
             correct += (torch.max(outputs.data, 1)[1] == labels).sum().item()
-    accuracy = correct / len(testloader.dataset)
-    loss = loss / len(testloader)
+    accuracy = correct / len(test_loader.dataset)
+    loss = loss / len(test_loader)
     return loss, accuracy
