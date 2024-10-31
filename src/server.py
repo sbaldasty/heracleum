@@ -25,7 +25,7 @@ def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
 def make_cifar_server(
         attack: Attack,
         fraction_fit=1.0,
-        fraction_evaluate=0.5,
+        fraction_evaluate=0.0,
         n_clients=10,
         n_corrupt_clients=2):
 
