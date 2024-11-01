@@ -7,6 +7,7 @@ from src.attack import GaussianNoiseAttack
 from src.attack import ScalingAttack
 from src.attack import SignFlipAttack
 from src.client import client_fn
+from src.defense import AbsentDefense
 from src.server import make_cifar_server
 from task import get_device
 from task import test
@@ -43,7 +44,7 @@ if __name__ == '__main__':
     experiments = []
     for attack, n_corrupt in product(attacks, corrupt_clients):
         attack_name, attack_obj = attack
-        server, model = make_cifar_server(attack_obj, n_clients=N_CLIENTS, n_corrupt_clients=n_corrupt)
+        server, model = make_cifar_server(attack_obj, AbsentDefense(), n_clients=N_CLIENTS, n_corrupt_clients=n_corrupt)
         start_simulation(
             client_fn=client_fn,
             num_clients=N_CLIENTS,

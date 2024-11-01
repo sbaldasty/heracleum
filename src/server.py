@@ -4,7 +4,9 @@ from flwr.server import Server
 from flwr.server.strategy import FedAvg
 from flwr.server.client_manager import SimpleClientManager
 from src.attack import Attack
-from src.strategy import AdversarialScenarioStrategyDecorator
+from src.defense import Defense
+from src.strategy import AttackStrategyDecorator
+from src.strategy import DefenseStrategyDecorator
 from src.strategy import ModelUpdateStrategyDecorator
 from src.strategy import RaiseOnFailureStrategyDecorator
 from src.task import Net
@@ -24,6 +26,7 @@ def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
 
 def make_cifar_server(
         attack: Attack,
+        defense: Defense,
         fraction_fit=1.0,
         fraction_evaluate=0.0,
         n_clients=10,
@@ -39,7 +42,8 @@ def make_cifar_server(
         min_available_clients=n_clients,
         initial_parameters=parameters)
 
-    strategy = AdversarialScenarioStrategyDecorator(strategy, attack, n_corrupt_clients)
+    strategy = DefenseStrategyDecorator(strategy, defense)
+    strategy = AttackStrategyDecorator(strategy, attack, n_corrupt_clients)
     strategy = ModelUpdateStrategyDecorator(strategy, model)
     strategy = RaiseOnFailureStrategyDecorator(strategy)
 

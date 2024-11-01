@@ -13,6 +13,7 @@ from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy import Strategy
 from random import sample
 from src.attack import Attack
+from src.defense import Defense
 from torch.nn import Module
 from typing import Dict
 from typing import List
@@ -68,7 +69,6 @@ class ModelUpdateStrategyDecorator(StrategyDecorator):
     def aggregate_fit(self, server_round: int, results: List[Tuple[ClientProxy, FitRes]], failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]]) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
         aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
         if aggregated_parameters is not None:
-            print(f"Saving round {server_round} aggregated_parameters...")
             aggregated_ndarrays: List[np.ndarray] = parameters_to_ndarrays(aggregated_parameters)
             params_dict = zip(self.model.state_dict().keys(), aggregated_ndarrays)
             state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
@@ -76,7 +76,7 @@ class ModelUpdateStrategyDecorator(StrategyDecorator):
         return aggregated_parameters, aggregated_metrics
 
 
-class AdversarialScenarioStrategyDecorator(StrategyDecorator):
+class AttackStrategyDecorator(StrategyDecorator):
 
     def __init__(self, delegate: Strategy, attack: Attack, n_corrupt_parties: int):
         super().__init__(delegate)
@@ -96,3 +96,16 @@ class AdversarialScenarioStrategyDecorator(StrategyDecorator):
                 res = self.attack.poison_gradients(proxy, results)
             poisoned_results.append((proxy, res))
         return super().aggregate_fit(server_round, poisoned_results, failures)
+    
+
+class DefenseStrategyDecorator(StrategyDecorator):
+
+    def __init__(self, delegate: Strategy, defense: Defense):
+        super().__init__(delegate)
+        self.defense = defense
+
+    # TODO Should we be recording the accusations as part of data gathering?
+    def aggregate_fit(self, server_round: int, results: List[Tuple[ClientProxy, FitRes]], failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]]) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
+        accused = self.defense.detect_corrupt_clients(results)
+        clean_results = [(c, r) for c, r in results if not c in accused]
+        return super().aggregate_fit(server_round, clean_results, failures)
