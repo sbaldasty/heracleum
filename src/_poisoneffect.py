@@ -16,10 +16,10 @@ from task import get_device
 from task import test
 
 OUTPUT_FILE = './out/poisoneffect/poisoneffect.csv'
-N_CLIENTS = 2#10
-N_ROUNDS = 2#30
+N_CLIENTS = 10
+N_ROUNDS = 30
 N_CORRUPT_CLIENTS_START = 0
-N_CORRUPT_CLIENTS_END = 0#5
+N_CORRUPT_CLIENTS_END = 5
 N_CORRUPT_CLIENTS_STEP = 1
 
 NOISE_ATTACK_MEAN = 0.0
@@ -34,20 +34,20 @@ class Experiment:
     n_corrupt_clients: int
     attack: str
     defense: str
+    accusations: str
     loss: float
     accuracy: float
 
 
 if __name__ == '__main__':
     attacks = [
-        ('None', AbsentAttack())
-    ]
-        # ('Sign flipping', SignFlipAttack()),
-        # (f'Scaling (factor={SCALING_ATTACK_FACTOR})', ScalingAttack(SCALING_ATTACK_FACTOR)),
-        # (f'Gaussian noise (mu={NOISE_ATTACK_MEAN}, sigma={NOISE_ATTACK_STDEV})', GaussianNoiseAttack(NOISE_ATTACK_MEAN, NOISE_ATTACK_STDEV))]
+        ('No attack', AbsentAttack()),
+        ('Sign flipping', SignFlipAttack()),
+        (f'Scaling (factor={SCALING_ATTACK_FACTOR})', ScalingAttack(SCALING_ATTACK_FACTOR)),
+        (f'Gaussian noise (mu={NOISE_ATTACK_MEAN}, sigma={NOISE_ATTACK_STDEV})', GaussianNoiseAttack(NOISE_ATTACK_MEAN, NOISE_ATTACK_STDEV))]
 
     defenses = [
-        ('None', AbsentDefense()),
+        ('No defense', AbsentDefense()),
         ('Norm ball', NormBallDefense())]
 
     corrupt_clients_range = range(N_CORRUPT_CLIENTS_START, N_CORRUPT_CLIENTS_END + 1, N_CORRUPT_CLIENTS_STEP)
@@ -65,13 +65,14 @@ if __name__ == '__main__':
             client_resources={'num_cpus': 1, 'num_gpus': 1})
 
         loss, accuracy = test(model.to(get_device()), N_CLIENTS)
-        # TODO Add accusations to experiment
+
         experiments.append(Experiment(
             n_clients=N_CLIENTS,
             n_rounds=N_ROUNDS,
             n_corrupt_clients=n_corrupt,
             attack=attack_name,
             defense=defense_name,
+            accusations=str(list(accusation_counter.values())),
             loss=loss,
             accuracy=accuracy))
 

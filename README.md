@@ -61,9 +61,9 @@ Here are [flower baselines](https://flower.ai/docs/baselines/how-to-contribute-b
 - [x] Collect experiment data in a csv file
 - [x] Demonstrate loss of model performance from a gradient poisoning attack
 - [x] Present attack efficacy in an interesting way
-- [ ] Prepare project proposal writeup
-- [ ] Figure out how to hook into gradient aggregation serverside
-- [ ] Prepare project proposal presentation
+- [x] Prepare project proposal writeup
+- [x] Figure out how to hook into gradient aggregation serverside
+- [x] Prepare project proposal presentation
 - [ ] Demonstrate the ball-norm poison defense
 ## Final project 
 - [ ] What model architectures do the paper use, should we explore different ones?
@@ -75,4 +75,3 @@ Here are [flower baselines](https://flower.ai/docs/baselines/how-to-contribute-b
 - [ ] Unit test the attacks
 - [ ] Document the poison effect notebook
 - [ ] Include a data poisoning attack (versus a gradient one)
-- [ ] 

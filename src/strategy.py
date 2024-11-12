@@ -111,6 +111,6 @@ class DefenseStrategyDecorator(StrategyDecorator):
     def aggregate_fit(self, server_round: int, results: List[Tuple[ClientProxy, FitRes]], failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]]) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
         defense_model = deepcopy(self.model)
         accused = self.defense.detect_corrupt_clients(defense_model, results)
-        self.counter.update(accused)
+        self.counter.update([x.node_id for x in accused])
         clean_results = [(c, r) for c, r in results if not c in accused]
         return super().aggregate_fit(server_round, clean_results, failures)
