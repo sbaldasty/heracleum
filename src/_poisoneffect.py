@@ -12,7 +12,7 @@ from src.server import make_cifar_server
 from task import get_device
 from task import test
 
-OUTPUT_FILE = './out/poisoneffect.csv'
+OUTPUT_FILE = './out/poisoneffect/poisoneffect.csv'
 N_CLIENTS = 10
 N_ROUNDS = 30
 N_CORRUPT_CLIENTS_START = 0

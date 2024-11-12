@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 
+from collections import Counter
+from copy import deepcopy
 from flwr.common import EvaluateIns
 from flwr.common import EvaluateRes
 from flwr.common import FitIns
@@ -100,12 +102,15 @@ class AttackStrategyDecorator(StrategyDecorator):
 
 class DefenseStrategyDecorator(StrategyDecorator):
 
-    def __init__(self, delegate: Strategy, defense: Defense):
+    def __init__(self, delegate: Strategy, defense: Defense, model: Module, counter: Counter):
         super().__init__(delegate)
         self.defense = defense
+        self.model = model
+        self.counter = counter
 
-    # TODO Should we be recording the accusations as part of data gathering?
     def aggregate_fit(self, server_round: int, results: List[Tuple[ClientProxy, FitRes]], failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]]) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
-        accused = self.defense.detect_corrupt_clients(results)
+        defense_model = deepcopy(self.model)
+        accused = self.defense.detect_corrupt_clients(defense_model, results)
+        self.counter.update(accused)
         clean_results = [(c, r) for c, r in results if not c in accused]
         return super().aggregate_fit(server_round, clean_results, failures)
