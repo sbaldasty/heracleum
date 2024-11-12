@@ -13,6 +13,7 @@
 #SBATCH --mail-type=ALL
 #SBATCH --output=%A.out 
 
+cd heracleum
 source script/initconda.sh
 mkdir -p out/pairings
 rm out/pairings/*

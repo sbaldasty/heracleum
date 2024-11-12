@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd heracleum
-
 # Make sure we have the right conda loaded
 module purge
 module load python3.11-anaconda/2023.09-0
