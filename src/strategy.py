@@ -80,10 +80,10 @@ class ModelUpdateStrategyDecorator(StrategyDecorator):
 
 class AttackStrategyDecorator(StrategyDecorator):
 
-    def __init__(self, delegate: Strategy, attack: Attack, n_corrupt_parties: int):
+    def __init__(self, delegate: Strategy, attack: Attack, corrupt_parties: list):
         super().__init__(delegate)
         self.attack = attack
-        self.corrupt_party_ids = [None] * n_corrupt_parties
+        self.corrupt_party_ids = corrupt_parties
         
     def configure_fit(self, server_round: int, parameters: Parameters, client_manager: ClientManager) -> List[Tuple[ClientProxy, FitIns]]:
         if server_round == 1:

@@ -1,3 +1,4 @@
+from collections import Counter
 from flwr.common import Metrics
 from flwr.common import ndarrays_to_parameters
 from flwr.server import Server
@@ -27,10 +28,11 @@ def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
 def make_cifar_server(
         attack: Attack,
         defense: Defense,
+        accusation_counter: Counter,
+        corrupt_client_ids: list[str],
         fraction_fit=1.0,
         fraction_evaluate=0.0,
-        n_clients=10,
-        n_corrupt_clients=2):
+        n_clients=10):
 
     model = Net()
     ndarrays = get_weights(model)
@@ -42,8 +44,8 @@ def make_cifar_server(
         min_available_clients=n_clients,
         initial_parameters=parameters)
 
-    strategy = DefenseStrategyDecorator(strategy, defense)
-    strategy = AttackStrategyDecorator(strategy, attack, n_corrupt_clients)
+    strategy = DefenseStrategyDecorator(strategy, defense, model, accusation_counter)
+    strategy = AttackStrategyDecorator(strategy, attack, corrupt_client_ids)
     strategy = ModelUpdateStrategyDecorator(strategy, model)
     strategy = RaiseOnFailureStrategyDecorator(strategy)
 

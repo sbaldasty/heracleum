@@ -11,7 +11,9 @@
 #SBATCH --job-name=heracleum
 #SBATCH --mail-user=steven.baldasty@uvm.edu,yeonhee.yeh@uvm.edu
 #SBATCH --mail-type=ALL
+#SBATCH --output=%A.out 
 
 source script/initconda.sh
-mkdir -p out/normballdefense
-python src/_normballdefense.py
+mkdir -p out/pairings
+rm out/pairings/*
+python src/_pairings.py

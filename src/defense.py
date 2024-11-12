@@ -3,7 +3,6 @@ from flwr.common import parameters_to_ndarrays
 from flwr.common.typing import NDArrays
 from flwr.server.client_proxy import ClientProxy
 from torch.nn import Module
-from torch.utils.data import DataLoader
 from typing import List
 from typing import Tuple
 
@@ -23,7 +22,7 @@ class AbsentDefense(Defense):
 class NormBallDefense(Defense):
 
     # TODO We probably have to initialize a model and other things?
-    def __init__(self, public_dataloader: DataLoader):
+    def __init__(self):
         pass
 
     # TODO Threshold updates need to happen here?

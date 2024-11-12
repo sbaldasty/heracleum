@@ -22,6 +22,15 @@ class Attack:
         raise Exception('Not implemented')
 
 
+class AbsentAttack(Attack):
+    '''
+    The adversary does nothing.
+    '''
+
+    def poison_gradients(self, attacker: ClientProxy, clean_results: List[Tuple[ClientProxy, FitRes]]) -> FitRes:
+        return self.clean_response(attacker, clean_results)
+
+
 class SignFlipAttack(Attack):
     '''
     The adversary flips the signs of the local updates of a corrupt client.
