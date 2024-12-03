@@ -8,5 +8,6 @@ dependencies:
     - dataclass-csv
     - flwr[simulation]
     - flwr-datasets[vision]
+    - scikit-learn
     - torch
     - torchvision
