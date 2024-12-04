@@ -46,7 +46,7 @@ def make_cifar_server(
 
     strategy = DefenseStrategyDecorator(strategy, defense, model, accusation_counter)
     strategy = AttackStrategyDecorator(strategy, attack, corrupt_client_ids)
-    strategy = ModelUpdateStrategyDecorator(strategy, model)
+    strategy = ModelUpdateStrategyDecorator(strategy, model, [defense])
     strategy = RaiseOnFailureStrategyDecorator(strategy)
 
     return Server(client_manager=SimpleClientManager(), strategy=strategy), model

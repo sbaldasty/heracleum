@@ -3,6 +3,7 @@ from flwr.common import ndarrays_to_parameters
 from flwr.common import parameters_to_ndarrays
 from flwr.server.client_proxy import ClientProxy
 from numpy.random import normal
+from src.defense import NormBallDefense
 from typing import List
 from typing import Tuple
 
@@ -74,3 +75,12 @@ class GaussianNoiseAttack(Attack):
         poisoned_ndarrays = [x + normal(self.mean, self.stdev, x.shape) for x in clean_ndarrays]
         poisoned_parameters = ndarrays_to_parameters(poisoned_ndarrays)
         return FitRes(clean_response.status, poisoned_parameters, clean_response.num_examples, clean_response.metrics)
+    
+
+class NormBallCounterattack(Attack):
+
+    def __init__(self, defense: NormBallDefense):
+        self.defense = defense
+
+    def poison_gradients(self, attacker: ClientProxy, clean_results: List[Tuple[ClientProxy, FitRes]]) -> FitRes:
+        pass

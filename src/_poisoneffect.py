@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     defenses = [
         ('No defense', AbsentDefense()),
-        ('Norm ball', NormBallDefense())]
+        ('Norm ball', NormBallDefense(N_CLIENTS))]
 
     corrupt_clients_range = range(N_CORRUPT_CLIENTS_START, N_CORRUPT_CLIENTS_END + 1, N_CORRUPT_CLIENTS_STEP)
     experiments = []

@@ -64,9 +64,10 @@ class RaiseOnFailureStrategyDecorator(StrategyDecorator):
 
 class ModelUpdateStrategyDecorator(StrategyDecorator):
 
-    def __init__(self, delegate: Strategy, model: Module):
+    def __init__(self, delegate: Strategy, model: Module, listeners):
         super().__init__(delegate)
         self.model = model
+        self.listeners = listeners
 
     def aggregate_fit(self, server_round: int, results: List[Tuple[ClientProxy, FitRes]], failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]]) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
         aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
@@ -75,6 +76,8 @@ class ModelUpdateStrategyDecorator(StrategyDecorator):
             params_dict = zip(self.model.state_dict().keys(), aggregated_ndarrays)
             state_dict = OrderedDict({k: torch.tensor(v) for k, v in params_dict})
             self.model.load_state_dict(state_dict, strict=True)
+            for listener in self.listeners:
+                listener.on_model_update(self.model)
         return aggregated_parameters, aggregated_metrics
 
 

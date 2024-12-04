@@ -14,25 +14,32 @@ from copy import deepcopy
 
 PUBLIC_DATASET_BATCHES = 1
 
+
 class Defense:
 
-    def detect_corrupt_clients(self, model: Module, results: List[Tuple[ClientProxy, FitRes]]) -> List[ClientProxy]:
+    def on_model_update(self, model: Module):
+        raise Exception('Not implemented')
+
+    def detect_corrupt_clients(self, results: List[Tuple[ClientProxy, FitRes]]) -> List[ClientProxy]:
         raise Exception('Not implemented')
 
 
 class AbsentDefense(Defense):
 
-    def detect_corrupt_clients(self, model: Module, results: List[Tuple[ClientProxy, FitRes]]) -> List[ClientProxy]:
+    def on_model_update(self, model: Module):
+        pass
+
+    def detect_corrupt_clients(self, results: List[Tuple[ClientProxy, FitRes]]) -> List[ClientProxy]:
         return []
 
 
 class NormBallDefense(Defense):
 
-    def __init__(self):
-        pass
+    def __init__(self, n_clients: int):
+        self.n_clients = n_clients
 
-    def detect_corrupt_clients(self, model: torch.nn.Module, results: List[Tuple[ClientProxy, FitRes]]) -> List[ClientProxy]:
-        train_loaders, test_loader = cifar_dataloaders(len(results))
+    def on_model_update(self, model: Module):
+        train_loaders, test_loader = cifar_dataloaders(self.n_clients)
         model = deepcopy(model)
         state = model.state_dict()
         loss_fn = torch.nn.CrossEntropyLoss()
@@ -56,30 +63,35 @@ class NormBallDefense(Defense):
 
         # compute the mean of the model updates (centroid)
         centroid = np.mean(public_model_updates, axis = 0)
-        centroid_tensor = torch.tensor(centroid)
 
         # remove 30% of the gradients that are far from the centroid  
         frac_to_remove = 0.3
         dists = self.compute_dists_to_centroid(public_model_updates, centroid)
 
+        self.latest_model = model
+        self.centroid = torch.tensor(centroid)
         # compute the threshold (the radius of the sphere where the center is centroid)
-        threshold = self.remove_and_compute_threshold(public_model_updates, dists, frac_to_remove)[1]        
+        self.threshold = self.remove_and_compute_threshold(public_model_updates, dists, frac_to_remove)
 
+    def detect_corrupt_clients(self, results: List[Tuple[ClientProxy, FitRes]]) -> List[ClientProxy]:
         accused = []
         for client, fitres in results:
-            
             # defense: distance betwwen an input data - the centroid > thershold => false   
             ndars = parameters_to_ndarrays(fitres.parameters)
-            flatndars = []
-            for x in ndars:
-                flatndars.append(torch.tensor(x).flatten())
-            flatndars = torch.cat(flatndars)
-            if (np.linalg.norm(centroid_tensor - flatndars) > threshold):
+            if self.accuses(ndars):
                 accused.append(client)
 
         return accused
-                                        
- 
+
+
+    def accuses(self, client_params: NDArrays) -> bool:
+        flatndars = []
+        for x in client_params:
+            flatndars.append(torch.tensor(x).flatten())
+        flatndars = torch.cat(flatndars)
+        return np.linalg.norm(self.centroid - flatndars) > self.threshold
+
+
     def compute_dists_to_centroid(self, X, centroid):
         """
         for each class, 
@@ -94,12 +106,6 @@ class NormBallDefense(Defense):
         assert frac_to_remove <= 1
         frac_to_keep = 1.0 - frac_to_remove  
         idx_to_keep = []
-        threshold = 0
-
         num_to_keep = int(np.round(frac_to_keep * np.shape(X)[0]))
         idx_to_keep.append([np.argsort(dists)[:num_to_keep]])
-        threshold = np.argsort(dists)[num_to_keep]
-            # np.where(Y==y)[0][np.argsort(dist[Y==y])[num_to_keep]]) 이렇게 하면 radius(threshold) 구할 수 있을 것 같음 
-        #return X[idx_to_keep, :], threshold
-        return 'asdf', threshold
-    
+        return np.argsort(dists)[num_to_keep]
