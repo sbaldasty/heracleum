@@ -6,15 +6,13 @@ from torch.nn import Module
 import itertools
 import torch
 import numpy as np
-from typing import Iterable, List
+from typing import List
 from typing import Tuple
 from dataset import cifar_dataloaders
 from copy import deepcopy
-from sklearn import metrics
-from task import get_device
 
 
-PUBLIC_DATASET_BATCHES = 2
+PUBLIC_DATASET_BATCHES = 1
 
 class Defense:
 
@@ -30,11 +28,9 @@ class AbsentDefense(Defense):
 
 class NormBallDefense(Defense):
 
-    # TODO We probably have to initialize a model and other things?
     def __init__(self):
         pass
 
-    # TODO Threshold updates need to happen here?
     def detect_corrupt_clients(self, model: torch.nn.Module, results: List[Tuple[ClientProxy, FitRes]]) -> List[ClientProxy]:
         train_loaders, test_loader = cifar_dataloaders(len(results))
         model = deepcopy(model)
