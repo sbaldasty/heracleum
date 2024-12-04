@@ -3,13 +3,16 @@ from flwr.common import parameters_to_ndarrays
 from flwr.common.typing import NDArrays
 from flwr.server.client_proxy import ClientProxy
 from torch.nn import Module
+import itertools
 import torch
 import numpy as np
-from typing import List
+from typing import Iterable, List
 from typing import Tuple
 from dataset import cifar_dataloaders
 from copy import deepcopy
 from sklearn import metrics
+
+PUBLIC_DATASET_BATCHES = 2
 
 class Defense:
 
@@ -33,30 +36,31 @@ class NormBallDefense(Defense):
     def detect_corrupt_clients(self, model: torch.nn.Module, results: List[Tuple[ClientProxy, FitRes]]) -> List[ClientProxy]:
         train_loaders, test_loader = cifar_dataloaders(len(results))
 
-        public_model_updates = [] 
-        loss_fn = torch.nn.CrossEntropyLoss()
-        # for every data train the model on and get gradient 
-        optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-
-        for i, data in enumerate(test_loader):                    
+        public_model_updates = []
+        for i, data in itertools.islice(enumerate(test_loader), PUBLIC_DATASET_BATCHES):
             inputs, labels = data
             for input, label in zip(inputs, labels):
+                loss_fn = torch.nn.CrossEntropyLoss()
                 # initialize model parameters
                 reset_model = deepcopy(model) 
+                # for every data train the model on and get gradient 
+                optimizer = torch.optim.SGD(reset_model.parameters(), lr=0.001, momentum=0.9)
                 # initialize gradient 
                 optimizer.zero_grad()
                 
                 # train the model on the input 
-                output = model(input)
+                output = reset_model(input)
 
                 # compute the loss and its gradient 
-                loss = loss_fn(output, label)
+                loss = loss_fn(output, torch.tensor([label]))
                 loss.backward()
-            
-                public_model_updates.append(reset_model.parameters())
+                optimizer.step()
+                flat_params = torch.cat([param.view(-1) for param in model.parameters()])
+                public_model_updates.append([x.detach().numpy() for x in flat_params])
 
         # compute the mean of the model updates (centroid)
         centroid = np.mean(public_model_updates, axis = 0)
+        centroid_tensor = torch.tensor(centroid)
 
         # remove 30% of the gradients that are far from the centroid  
         frac_to_remove = 0.3
@@ -69,9 +73,14 @@ class NormBallDefense(Defense):
         for client, fitres in results:
             
             # defense: distance betwwen an input data - the centroid > thershold => false   
-            
-            if (metrics.pairwise_distances(centroid, parameters_to_ndarrays(fitres.parameters), metric = 'euclidean') > threshold):
+            ndars = parameters_to_ndarrays(fitres.parameters)
+            flatndars = []
+            for x in ndars:
+                flatndars.append(torch.tensor(x).flatten())
+            flatndars = torch.cat(flatndars)
+            if (np.linalg.norm(centroid_tensor - flatndars) > threshold):
                 accused.append(client)
+
         return accused
                                         
  
@@ -81,14 +90,10 @@ class NormBallDefense(Defense):
         2) compute the distances from the data samples to the centroid
         3) return the distances  
         """
-        dists = np.zeros(X.shape[0])
+        return [np.linalg.norm(x - centroid) for x in X]
 
-        for data_point in X:
-            dists.append(metrics.pairwise.pairwise_distances(data_point, centroid, metric = 'euclidean'))
-        
-        return dists 
 
-    def remove_and_compute_threshold(X, dists, frac_to_remove):
+    def remove_and_compute_threshold(self, X, dists, frac_to_remove):
         assert frac_to_remove >= 0
         assert frac_to_remove <= 1
         frac_to_keep = 1.0 - frac_to_remove  
@@ -99,5 +104,6 @@ class NormBallDefense(Defense):
         idx_to_keep.append([np.argsort(dists)[:num_to_keep]])
         threshold = np.argsort(dists)[num_to_keep]
             # np.where(Y==y)[0][np.argsort(dist[Y==y])[num_to_keep]]) 이렇게 하면 radius(threshold) 구할 수 있을 것 같음 
-        return X[idx_to_keep, :], threshold
+        #return X[idx_to_keep, :], threshold
+        return 'asdf', threshold
     
