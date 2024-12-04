@@ -11,6 +11,8 @@ from typing import Tuple
 from dataset import cifar_dataloaders
 from copy import deepcopy
 from sklearn import metrics
+from task import get_device
+
 
 PUBLIC_DATASET_BATCHES = 2
 
@@ -35,24 +37,22 @@ class NormBallDefense(Defense):
     # TODO Threshold updates need to happen here?
     def detect_corrupt_clients(self, model: torch.nn.Module, results: List[Tuple[ClientProxy, FitRes]]) -> List[ClientProxy]:
         train_loaders, test_loader = cifar_dataloaders(len(results))
-
+        model = deepcopy(model)
+        state = model.state_dict()
+        loss_fn = torch.nn.CrossEntropyLoss()
+        optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
         public_model_updates = []
-        for i, data in itertools.islice(enumerate(test_loader), PUBLIC_DATASET_BATCHES):
-            inputs, labels = data
+        for i, (inputs, labels) in itertools.islice(enumerate(test_loader), PUBLIC_DATASET_BATCHES):
+            labels = labels.unsqueeze(1)
             for input, label in zip(inputs, labels):
-                loss_fn = torch.nn.CrossEntropyLoss()
-                # initialize model parameters
-                reset_model = deepcopy(model) 
                 # for every data train the model on and get gradient 
-                optimizer = torch.optim.SGD(reset_model.parameters(), lr=0.001, momentum=0.9)
-                # initialize gradient 
+                model.load_state_dict(state)
                 optimizer.zero_grad()
                 
-                # train the model on the input 
-                output = reset_model(input)
+                output = model(input)
 
                 # compute the loss and its gradient 
-                loss = loss_fn(output, torch.tensor([label]))
+                loss = loss_fn(output, label)
                 loss.backward()
                 optimizer.step()
                 flat_params = torch.cat([param.view(-1) for param in model.parameters()])
