@@ -85,16 +85,13 @@ class NormBallCounterattack(Attack):
     def poison_gradients(self, attacker: ClientProxy, clean_results: List[Tuple[ClientProxy, FitRes]]) -> FitRes:
         high_scale = 10.0
         low_scale = 1.0
-        #delta = 0.3
 
-        fitres = self.clean_response(attacker, clean_results) # honest response  
-        clean_ndarrays = parameters_to_ndarrays(fitres.parameters)
-        
+        fitres = self.clean_response(attacker, clean_results) # honest response
         for _ in range(100):
             mid_scale = (high_scale - low_scale) / 2
             scaling_attack = ScalingAttack(mid_scale)
 
-            poisoned_ndarrays = scaling_attack.poison_data(clean_ndarrays)
+            poisoned_ndarrays = parameters_to_ndarrays(scaling_attack.poison_gradients(attacker, clean_results).parameters)
 
             if(self.defense.accuses(poisoned_ndarrays)):
                 high_scale = mid_scale
@@ -102,8 +99,9 @@ class NormBallCounterattack(Attack):
             else:
                 low_scale = mid_scale
 
-        final_poisoned_ndarrays = ScalingAttack(low_scale).poison_data(clean_ndarrays)
-        assert not self.defense.accuses(final_poisoned_ndarrays)
+        final_poisoned_ndarrays = parameters_to_ndarrays(ScalingAttack(low_scale).poison_gradients(attacker, clean_results).parameters)
+        # assert not self.defense.accuses(parameters_to_ndarrays(fitres.parameters))
+        # assert not self.defense.accuses(final_poisoned_ndarrays)
 
         return FitRes(fitres.status, ndarrays_to_parameters(final_poisoned_ndarrays), fitres.num_examples, fitres.metrics)
             

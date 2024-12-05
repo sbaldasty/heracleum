@@ -11,10 +11,10 @@ from task import get_device
 from task import test
 
 OUTPUT_FILE = './out/pairings/ballnorm.csv'
-N_CLIENTS = 10
-N_ROUNDS = 30
+N_CLIENTS = 3
+N_ROUNDS = 2
 N_CORRUPT_CLIENTS_START = 0
-N_CORRUPT_CLIENTS_END = 5
+N_CORRUPT_CLIENTS_END = 2
 N_CORRUPT_CLIENTS_STEP = 1
 
 
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     for n_corrupt in corrupt_clients_range:
         accusation_counter = Counter()
         corrupt_client_ids = [None] * n_corrupt
-        defense = NormBallDefense()
+        defense = NormBallDefense(N_CLIENTS)
         attack = NormBallCounterattack(defense)
         server, model = make_cifar_server(attack, defense, accusation_counter, corrupt_client_ids, n_clients=N_CLIENTS)
 

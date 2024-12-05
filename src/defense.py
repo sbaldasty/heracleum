@@ -12,7 +12,7 @@ from dataset import cifar_dataloaders
 from copy import deepcopy
 
 
-PUBLIC_DATASET_BATCHES = 1
+PUBLIC_DATASET_BATCHES = 2
 
 
 class Defense:

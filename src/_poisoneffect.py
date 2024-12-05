@@ -18,8 +18,8 @@ from task import test
 OUTPUT_FILE = './out/poisoneffect/poisoneffect.csv'
 N_CLIENTS = 3
 N_ROUNDS = 2
-N_CORRUPT_CLIENTS_START = 2
-N_CORRUPT_CLIENTS_END = 2
+N_CORRUPT_CLIENTS_START = 0
+N_CORRUPT_CLIENTS_END = 5
 N_CORRUPT_CLIENTS_STEP = 1
 
 NOISE_ATTACK_MEAN = 0.0
@@ -41,13 +41,13 @@ class Experiment:
 
 if __name__ == '__main__':
     attacks = [
-#        ('No attack', AbsentAttack()),
-#        ('Sign flipping', SignFlipAttack()),
-        (f'Scaling (factor={SCALING_ATTACK_FACTOR})', ScalingAttack(SCALING_ATTACK_FACTOR))]
-#        (f'Gaussian noise (mu={NOISE_ATTACK_MEAN}, sigma={NOISE_ATTACK_STDEV})', GaussianNoiseAttack(NOISE_ATTACK_MEAN, NOISE_ATTACK_STDEV))]
+        ('No attack', AbsentAttack()),
+        ('Sign flipping', SignFlipAttack()),
+        (f'Scaling (factor={SCALING_ATTACK_FACTOR})', ScalingAttack(SCALING_ATTACK_FACTOR)),
+        (f'Gaussian noise (mu={NOISE_ATTACK_MEAN}, sigma={NOISE_ATTACK_STDEV})', GaussianNoiseAttack(NOISE_ATTACK_MEAN, NOISE_ATTACK_STDEV))]
 
     defenses = [
-#        ('No defense', AbsentDefense()),
+        ('No defense', AbsentDefense()),
         ('Norm ball', NormBallDefense(N_CLIENTS))]
 
     corrupt_clients_range = range(N_CORRUPT_CLIENTS_START, N_CORRUPT_CLIENTS_END + 1, N_CORRUPT_CLIENTS_STEP)
