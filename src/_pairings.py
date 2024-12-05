@@ -10,11 +10,12 @@ from src.server import make_cifar_server
 from task import get_device
 from task import test
 
+
 OUTPUT_FILE = './out/pairings/ballnorm.csv'
-N_CLIENTS = 3
-N_ROUNDS = 2
+N_CLIENTS = 10
+N_ROUNDS = 30
 N_CORRUPT_CLIENTS_START = 0
-N_CORRUPT_CLIENTS_END = 2
+N_CORRUPT_CLIENTS_END = 5
 N_CORRUPT_CLIENTS_STEP = 1
 
 
