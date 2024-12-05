@@ -15,11 +15,11 @@ from src.server import make_cifar_server
 from task import get_device
 from task import test
 
-OUTPUT_FILE = './out/poisoneffect/poisoneffect.csv'
-N_CLIENTS = 3
-N_ROUNDS = 2
-N_CORRUPT_CLIENTS_START = 0
-N_CORRUPT_CLIENTS_END = 5
+OUTPUT_FILE = './out/poisoneffect/honest.csv'
+N_HONEST_CLIENTS = 0
+N_ROUNDS = 30
+N_CORRUPT_CLIENTS_START = 5
+N_CORRUPT_CLIENTS_END = 10
 N_CORRUPT_CLIENTS_STEP = 1
 
 NOISE_ATTACK_MEAN = 0.0
@@ -29,7 +29,8 @@ SCALING_ATTACK_FACTOR = 2.0
 
 @dataclass
 class Experiment:
-    n_clients: int
+    n_honest_clients: int
+    n_corrupt_clients: int
     n_rounds: int
     n_corrupt_clients: int
     attack: str
@@ -40,36 +41,38 @@ class Experiment:
 
 
 if __name__ == '__main__':
+    max_clients = N_HONEST_CLIENTS + N_CORRUPT_CLIENTS_END
+
     attacks = [
-        ('No attack', AbsentAttack()),
-        ('Sign flipping', SignFlipAttack()),
-        (f'Scaling (factor={SCALING_ATTACK_FACTOR})', ScalingAttack(SCALING_ATTACK_FACTOR)),
-        (f'Gaussian noise (mu={NOISE_ATTACK_MEAN}, sigma={NOISE_ATTACK_STDEV})', GaussianNoiseAttack(NOISE_ATTACK_MEAN, NOISE_ATTACK_STDEV))]
+        ('No attack', AbsentAttack())]
+        # ('Sign flipping', SignFlipAttack()),
+        # (f'Scaling (factor={SCALING_ATTACK_FACTOR})', ScalingAttack(SCALING_ATTACK_FACTOR)),
+        # (f'Gaussian noise (mu={NOISE_ATTACK_MEAN}, sigma={NOISE_ATTACK_STDEV})', GaussianNoiseAttack(NOISE_ATTACK_MEAN, NOISE_ATTACK_STDEV))]
 
     defenses = [
-        ('No defense', AbsentDefense()),
-        ('Norm ball', NormBallDefense(N_CLIENTS))]
+        ('No defense', AbsentDefense())]
+        # ('Norm ball', NormBallDefense(max_clients))]
 
     corrupt_clients_range = range(N_CORRUPT_CLIENTS_START, N_CORRUPT_CLIENTS_END + 1, N_CORRUPT_CLIENTS_STEP)
     experiments = []
     for (attack_name, attack_obj), (defense_name, defense_obj), n_corrupt in product(attacks, defenses, corrupt_clients_range):
         accusation_counter = Counter()
         corrupt_client_ids = [None] * n_corrupt
-        server, model = make_cifar_server(attack_obj, defense_obj, accusation_counter, corrupt_client_ids, n_clients=N_CLIENTS)
+        server, model = make_cifar_server(attack_obj, defense_obj, accusation_counter, corrupt_client_ids, n_clients=n_corrupt)
 
         start_simulation(
             client_fn=client_fn,
-            num_clients=N_CLIENTS,
+            num_clients=N_HONEST_CLIENTS + n_corrupt,
             server=server,
             config=ServerConfig(num_rounds=N_ROUNDS),
             client_resources={'num_cpus': 1, 'num_gpus': 1})
 
-        loss, accuracy = test(model.to(get_device()), N_CLIENTS)
+        loss, accuracy = test(model.to(get_device()), max_clients)
 
         experiments.append(Experiment(
-            n_clients=N_CLIENTS,
+            n_honest_clients=n_corrupt,
+            n_corrupt_clients = 0,
             n_rounds=N_ROUNDS,
-            n_corrupt_clients=n_corrupt,
             attack=attack_name,
             defense=defense_name,
             accusations=str(list(accusation_counter.values())),
