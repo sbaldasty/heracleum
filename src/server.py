@@ -37,6 +37,7 @@ def make_cifar_server(
     model = Net()
     ndarrays = get_weights(model)
     parameters = ndarrays_to_parameters(ndarrays)
+    defense.on_model_update(model)
 
     strategy = FedAvg(
         fraction_fit=fraction_fit,

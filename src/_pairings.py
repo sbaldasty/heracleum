@@ -34,8 +34,8 @@ if __name__ == '__main__':
     for n_corrupt in corrupt_clients_range:
         accusation_counter = Counter()
         corrupt_client_ids = [None] * n_corrupt
-        attack = NormBallCounterattack() # TODO
         defense = NormBallDefense()
+        attack = NormBallCounterattack(defense)
         server, model = make_cifar_server(attack, defense, accusation_counter, corrupt_client_ids, n_clients=N_CLIENTS)
 
         start_simulation(
