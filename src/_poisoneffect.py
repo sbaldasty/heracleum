@@ -8,10 +8,11 @@ from src.attack import AbsentAttack
 from src.attack import GaussianNoiseAttack
 from src.attack import ScalingAttack
 from src.attack import SignFlipAttack
-from src.client import client_fn
+from src.client import client_fn_fn
 from src.defense import AbsentDefense
 from src.defense import NormBallDefense
 from src.server import make_cifar_server
+from src.task import SimpleCNN
 from task import get_device
 from task import test
 
@@ -61,7 +62,7 @@ if __name__ == '__main__':
         server, model = make_cifar_server(attack_obj, defense_obj, accusation_counter, corrupt_client_ids, n_clients=n_clients)
 
         start_simulation(
-            client_fn=client_fn,
+            client_fn=client_fn_fn(SimpleCNN),
             num_clients=n_clients,
             server=server,
             config=ServerConfig(num_rounds=N_ROUNDS),

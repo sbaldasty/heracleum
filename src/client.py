@@ -1,15 +1,16 @@
 from dataset import cifar_dataloaders
 from flwr.client import NumPyClient
 from flwr.common import Context
-from src.task import Net, get_weights, set_weights
+from src.task import get_weights, set_weights
 from src.task import get_device
+from torch import Module
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 
 
 class FlowerClient(NumPyClient):
-    def __init__(self, trainloader, local_epochs, learning_rate):
-        self.net = Net()
+    def __init__(self, module, trainloader, local_epochs, learning_rate):
+        self.net = module
         self.trainloader = trainloader
         self.local_epochs = local_epochs
         self.lr = learning_rate
@@ -34,8 +35,11 @@ class FlowerClient(NumPyClient):
         return 0.0, len(self.trainloader.dataset), {}
 
 
-def client_fn(context: Context):
-    partition_id = int(context.node_config['partition-id'])
-    train_loaders, test_loader = cifar_dataloaders(int(context.node_config['num-partitions']))
-    flower_client = FlowerClient(train_loaders[partition_id], local_epochs=1, learning_rate=0.01)
-    return flower_client.to_client()
+def client_fn_fn(module: Module):
+    def client_fn(context: Context):
+        partition_id = int(context.node_config['partition-id'])
+        train_loaders, test_loader = cifar_dataloaders(int(context.node_config['num-partitions']))
+        flower_client = FlowerClient(module, train_loaders[partition_id], local_epochs=1, learning_rate=0.01)
+        return flower_client.to_client()
+    
+    return client_fn
