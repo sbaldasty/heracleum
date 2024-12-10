@@ -1,9 +1,9 @@
 from dataset import cifar_dataloaders
 from flwr.client import NumPyClient
 from flwr.common import Context
-from src.task import get_weights, set_weights
-from src.task import get_device
-from torch import Module
+from util import get_weights, set_weights
+from util import get_device
+from torch.nn import Module
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 

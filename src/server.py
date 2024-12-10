@@ -10,8 +10,8 @@ from src.strategy import AttackStrategyDecorator
 from src.strategy import DefenseStrategyDecorator
 from src.strategy import ModelUpdateStrategyDecorator
 from src.strategy import RaiseOnFailureStrategyDecorator
-from src.task import Net
-from src.task import get_weights
+from util import get_weights
+from torch.nn import Module
 from typing import List
 from typing import Tuple
 
@@ -26,6 +26,7 @@ def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
 
 
 def make_cifar_server(
+        model: Module,
         attack: Attack,
         defense: Defense,
         accusation_counter: Counter,
@@ -34,7 +35,6 @@ def make_cifar_server(
         fraction_evaluate=0.0,
         n_clients=10):
 
-    model = Net()
     ndarrays = get_weights(model)
     parameters = ndarrays_to_parameters(ndarrays)
     defense.on_model_update(model)
@@ -50,4 +50,4 @@ def make_cifar_server(
     strategy = ModelUpdateStrategyDecorator(strategy, model, [defense])
     strategy = RaiseOnFailureStrategyDecorator(strategy)
 
-    return Server(client_manager=SimpleClientManager(), strategy=strategy), model
+    return Server(client_manager=SimpleClientManager(), strategy=strategy)

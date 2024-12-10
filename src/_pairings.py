@@ -7,8 +7,8 @@ from src.attack import NormBallCounterattack
 from src.client import client_fn
 from src.defense import NormBallDefense
 from src.server import make_cifar_server
-from task import get_device
-from task import test
+from util import get_device
+from util import test
 
 
 OUTPUT_FILE = './out/pairings/ballnorm.csv'

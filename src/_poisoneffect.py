@@ -12,14 +12,14 @@ from src.client import client_fn_fn
 from src.defense import AbsentDefense
 from src.defense import NormBallDefense
 from src.server import make_cifar_server
-from src.task import SimpleCNN
-from task import get_device
-from task import test
+from model import SimpleCNN
+from util import get_device
+from util import test
 
 OUTPUT_FILE = './out/poisoneffect.csv'
 N_HONEST_CLIENTS = 10
 N_ROUNDS = 30
-N_CORRUPT_CLIENTS_START = 1
+N_CORRUPT_CLIENTS_START = 0
 N_CORRUPT_CLIENTS_END = 4
 N_CORRUPT_CLIENTS_STEP = 1
 
@@ -43,6 +43,9 @@ class Experiment:
 if __name__ == '__main__':
     max_clients = N_HONEST_CLIENTS + N_CORRUPT_CLIENTS_END
 
+    models = [
+        ('CNN', SimpleCNN())]
+
     attacks = [
         ('No attack', AbsentAttack()),
         ('Sign flipping', SignFlipAttack()),
@@ -56,13 +59,14 @@ if __name__ == '__main__':
     corrupt_clients_range = range(N_CORRUPT_CLIENTS_START, N_CORRUPT_CLIENTS_END + 1, N_CORRUPT_CLIENTS_STEP)
     experiments = []
     for (attack_name, attack_obj), (defense_name, defense_obj), n_corrupt in product(attacks, defenses, corrupt_clients_range):
+        model = SimpleCNN()
         n_clients = N_HONEST_CLIENTS + n_corrupt
         accusation_counter = Counter()
         corrupt_client_ids = [None] * n_corrupt
-        server, model = make_cifar_server(attack_obj, defense_obj, accusation_counter, corrupt_client_ids, n_clients=n_clients)
+        server = make_cifar_server(model, attack_obj, defense_obj, accusation_counter, corrupt_client_ids, n_clients=n_clients)
 
         start_simulation(
-            client_fn=client_fn_fn(SimpleCNN),
+            client_fn=client_fn_fn(model),
             num_clients=n_clients,
             server=server,
             config=ServerConfig(num_rounds=N_ROUNDS),
