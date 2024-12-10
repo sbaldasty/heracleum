@@ -15,6 +15,6 @@
 
 cd heracleum
 source script/initconda.sh
-mkdir -p out/poisoneffect
-rm out/poisoneffect/*
+mkdir -p out
+rm out/*
 python src/_poisoneffect.py

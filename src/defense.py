@@ -3,16 +3,17 @@ from flwr.common import parameters_to_ndarrays
 from flwr.common.typing import NDArrays
 from flwr.server.client_proxy import ClientProxy
 from torch.nn import Module
+from torch.utils.data import DataLoader
 import itertools
 import torch
 import numpy as np
 from typing import List
 from typing import Tuple
-from dataset import cifar_dataloaders
+from dataset import cifar_test_set
 from copy import deepcopy
 
 
-PUBLIC_DATASET_BATCHES = 2
+PUBLIC_DATASET_SIZE = 32
 
 
 class Defense:
@@ -39,13 +40,14 @@ class NormBallDefense(Defense):
         self.n_clients = n_clients
 
     def on_model_update(self, model: Module):
-        train_loaders, test_loader = cifar_dataloaders(self.n_clients)
+        public_dataset = cifar_test_set()
+        loader = DataLoader(public_dataset, batch_size=1, shuffle=False)
         model = deepcopy(model)
         state = model.state_dict()
         loss_fn = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
         public_model_updates = []
-        for i, (inputs, labels) in itertools.islice(enumerate(test_loader), PUBLIC_DATASET_BATCHES):
+        for i, (inputs, labels) in itertools.islice(enumerate(loader), PUBLIC_DATASET_SIZE):
             labels = labels.unsqueeze(1)
             for input, label in zip(inputs, labels):
                 # for every data train the model on and get gradient 

@@ -10,10 +10,19 @@ from typing import Tuple
 DATA_DIR = './data'
 BATCH_SIZE = 32
 
+test_set = None
 cifar_train_loaders = None
 cifar_test_loader = None
 
+def cifar_test_set() -> CIFAR10:
+    global test_set
+    if test_set is None:
+        transform = Compose([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        test_set = CIFAR10(root=DATA_DIR, train=False, download=True, transform=transform)
+    return test_set
+
 def cifar_dataloaders(n_clients: int) -> Tuple[list[DataLoader], DataLoader]:
+    global test_set
     global cifar_train_loaders
     global cifar_test_loader
     if cifar_test_loader is None:
