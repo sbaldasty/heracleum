@@ -15,6 +15,7 @@ from src.server import make_cifar_server
 from model import SimpleCNN
 from util import get_device
 from util import test
+from src.dataset import cifar_test_set
 
 OUTPUT_FILE = './out/poisoneffect.csv'
 N_HONEST_CLIENTS = 10
@@ -42,6 +43,7 @@ class Experiment:
 
 if __name__ == '__main__':
     max_clients = N_HONEST_CLIENTS + N_CORRUPT_CLIENTS_END
+    cifar_test_set() # load cifar datatset 
 
     models = [
         ('CNN', SimpleCNN())]
@@ -70,7 +72,7 @@ if __name__ == '__main__':
             num_clients=n_clients,
             server=server,
             config=ServerConfig(num_rounds=N_ROUNDS),
-            client_resources={'num_cpus': 1, 'num_gpus': 1})
+            client_resources={'num_cpus': 1, 'num_gpus': 0})
 
         loss, accuracy = test(model.to(get_device()), max_clients)
 

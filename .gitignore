@@ -1,2 +1,4 @@
 *.pyc
 /data/*
+.python-version
+heracleum.code-workspace
