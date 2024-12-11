@@ -15,6 +15,6 @@
 
 cd heracleum
 source script/initconda.sh
-mkdir -p out/pairings
-rm out/pairings/*
+mkdir -p out
+rm out/*
 python src/_pairings.py
