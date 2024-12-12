@@ -12,16 +12,15 @@ from src.client import client_fn_fn
 from src.defense import AbsentDefense
 from src.defense import NormBallDefense
 from src.server import make_cifar_server
-from model import SimpleCNN
-from util import get_device
-from util import test
+from src.model import SimpleCNN
+from src.util import test
 from src.dataset import cifar_test_set
 
 OUTPUT_FILE = './out/poisoneffect.csv'
 N_HONEST_CLIENTS = 10
 N_ROUNDS = 30
 N_CORRUPT_CLIENTS_START = 0
-N_CORRUPT_CLIENTS_END = 4
+N_CORRUPT_CLIENTS_END = 0
 N_CORRUPT_CLIENTS_STEP = 1
 
 NOISE_ATTACK_MEAN = 0.0
@@ -34,6 +33,7 @@ class Experiment:
     n_clients: int
     n_rounds: int
     n_corrupt_clients: int
+    model: str
     attack: str
     defense: str
     accusations: str
@@ -60,8 +60,7 @@ if __name__ == '__main__':
 
     corrupt_clients_range = range(N_CORRUPT_CLIENTS_START, N_CORRUPT_CLIENTS_END + 1, N_CORRUPT_CLIENTS_STEP)
     experiments = []
-    for (attack_name, attack_obj), (defense_name, defense_obj), n_corrupt in product(attacks, defenses, corrupt_clients_range):
-        model = SimpleCNN()
+    for (model_name, model), (attack_name, attack_obj), (defense_name, defense_obj), n_corrupt in product(models, attacks, defenses, corrupt_clients_range):
         n_clients = N_HONEST_CLIENTS + n_corrupt
         accusation_counter = Counter()
         corrupt_client_ids = [None] * n_corrupt
@@ -72,14 +71,15 @@ if __name__ == '__main__':
             num_clients=n_clients,
             server=server,
             config=ServerConfig(num_rounds=N_ROUNDS),
-            client_resources={'num_cpus': 1, 'num_gpus': 0})
+            client_resources={'num_cpus': 1, 'num_gpus': 1})
 
-        loss, accuracy = test(model.to(get_device()), max_clients)
+        loss, accuracy = test(model, max_clients)
 
         experiments.append(Experiment(
             n_clients=n_clients,
             n_rounds=N_ROUNDS,
             n_corrupt_clients=n_corrupt,
+            model=model_name,
             attack=attack_name,
             defense=defense_name,
             accusations=str(list(accusation_counter.values())),

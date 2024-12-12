@@ -1,5 +1,6 @@
 from collections import OrderedDict
-from dataset import cifar_dataloaders
+from copy import deepcopy
+from src.dataset import cifar_dataloaders
 
 import torch
 
@@ -20,6 +21,7 @@ def set_weights(net, parameters):
 
 def test(net, n_clients):
     """Validate the model on the test set."""
+    net = deepcopy(net)
     train_loaders, test_loader = cifar_dataloaders(n_clients)
     criterion = torch.nn.CrossEntropyLoss()
     correct, loss = 0, 0.0

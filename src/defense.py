@@ -9,7 +9,7 @@ import torch
 import numpy as np
 from typing import List
 from typing import Tuple
-from dataset import cifar_test_set
+from src.dataset import cifar_test_set
 from copy import deepcopy
 
 
@@ -40,9 +40,9 @@ class NormBallDefense(Defense):
         self.n_clients = n_clients
 
     def on_model_update(self, model: Module):
+        model = deepcopy(model)
         public_dataset = cifar_test_set()
         loader = DataLoader(public_dataset, batch_size=1, shuffle=False)
-        model = deepcopy(model)
         state = model.state_dict()
         loss_fn = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
@@ -50,10 +50,6 @@ class NormBallDefense(Defense):
         for i, (inputs, labels) in itertools.islice(enumerate(loader), PUBLIC_DATASET_SIZE):
             labels = labels.unsqueeze(1)
             for input, label in zip(inputs, labels):
-                # for every data train the model on and get gradient 
-                model.load_state_dict(state)
-                optimizer.zero_grad()
-                
                 output = model(input)
 
                 # compute the loss and its gradient 
@@ -62,6 +58,9 @@ class NormBallDefense(Defense):
                 optimizer.step()
                 flat_params = torch.cat([param.view(-1) for param in model.parameters()])
                 public_model_updates.append([x.detach().numpy() for x in flat_params])
+
+                model.load_state_dict(state)
+                optimizer.zero_grad()
 
         # compute the mean of the model updates (centroid)
         centroid = np.mean(public_model_updates, axis = 0)

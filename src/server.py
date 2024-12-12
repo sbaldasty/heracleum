@@ -1,5 +1,4 @@
 from collections import Counter
-from flwr.common import Metrics
 from flwr.common import ndarrays_to_parameters
 from flwr.server import Server
 from flwr.server.strategy import FedAvg
@@ -10,19 +9,8 @@ from src.strategy import AttackStrategyDecorator
 from src.strategy import DefenseStrategyDecorator
 from src.strategy import ModelUpdateStrategyDecorator
 from src.strategy import RaiseOnFailureStrategyDecorator
-from util import get_weights
+from src.util import get_weights
 from torch.nn import Module
-from typing import List
-from typing import Tuple
-
-# Define metric aggregation function
-def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
-    # Multiply accuracy of each client by number of examples used
-    accuracies = [num_examples * m["accuracy"] for num_examples, m in metrics]
-    examples = [num_examples for num_examples, _ in metrics]
-
-    # Aggregate and return custom metric (weighted average)
-    return {"accuracy": sum(accuracies) / sum(examples)}
 
 
 def make_cifar_server(

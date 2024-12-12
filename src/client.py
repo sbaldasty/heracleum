@@ -1,8 +1,9 @@
-from dataset import cifar_dataloaders
+from copy import deepcopy
 from flwr.client import NumPyClient
 from flwr.common import Context
-from util import get_weights, set_weights
-from util import get_device
+from src.dataset import cifar_dataloaders
+from src.util import get_weights, set_weights
+from src.util import get_device
 from torch.nn import Module
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
@@ -16,6 +17,7 @@ class FlowerClient(NumPyClient):
         self.lr = learning_rate
 
     def fit(self, parameters, config):
+        self.net = deepcopy(self.net)
         set_weights(self.net, parameters)
         self.net.to(get_device())
         criterion = CrossEntropyLoss().to(get_device())
@@ -23,7 +25,6 @@ class FlowerClient(NumPyClient):
         self.net.train()
         for _ in range(self.local_epochs):
             for batch in self.trainloader:
-                #print(f'BATCH BATCH {batch.}')
                 images, labels = batch
                 optimizer.zero_grad()
                 criterion(self.net(images.to(get_device())), labels.to(get_device())).backward()

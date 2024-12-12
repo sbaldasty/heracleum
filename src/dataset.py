@@ -17,7 +17,7 @@ cifar_test_loader = None
 def cifar_test_set() -> CIFAR10:
     global test_set
     if test_set is None:
-        transform = Compose([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        transform = Compose([ToTensor(), Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
         test_set = CIFAR10(root=DATA_DIR, train=False, download=True, transform=transform)
     return test_set
 
@@ -26,7 +26,7 @@ def cifar_dataloaders(n_clients: int) -> Tuple[list[DataLoader], DataLoader]:
     global cifar_train_loaders
     global cifar_test_loader
     if cifar_test_loader is None:
-        transform = Compose([ToTensor(), Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        transform = Compose([ToTensor(), Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
         test_set = CIFAR10(root=DATA_DIR, train=False, download=True, transform=transform)
         cifar_test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=False)
         train_set = CIFAR10(root=DATA_DIR, train=True, download=True, transform=transform)

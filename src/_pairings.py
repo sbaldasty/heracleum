@@ -8,11 +8,11 @@ from src.attack import NormBallCounterattack
 from src.client import client_fn_fn
 from src.defense import NormBallDefense
 from src.server import make_cifar_server
-from util import get_device
-from util import test
+from src.util import get_device
+from src.util import test
 
 
-OUTPUT_FILE = './out/ballnorm.csv'
+OUTPUT_FILE = './out/normball.csv'
 N_HONEST_CLIENTS = 10
 N_ROUNDS = 30
 N_CORRUPT_CLIENTS_START = 0
