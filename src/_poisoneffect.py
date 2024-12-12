@@ -47,8 +47,8 @@ if __name__ == '__main__':
     cifar_test_set() # load cifar datatset 
 
     models = [
-        ('CNN', SimpleCNN(), 0.001),
-        ('CNN', ModifiedCNN(), 0.001)]
+        ('Simple CNN', SimpleCNN(), 0.001),
+        ('Modified CNN', ModifiedCNN(), 0.001)]
 
     attacks = [
         ('No attack', AbsentAttack()),
