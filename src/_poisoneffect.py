@@ -12,6 +12,7 @@ from src.client import client_fn_fn
 from src.defense import AbsentDefense
 from src.defense import NormBallDefense
 from src.server import make_cifar_server
+from src.model import ModifiedCNN
 from src.model import SimpleCNN
 from src.util import test
 from src.dataset import cifar_test_set
@@ -46,7 +47,8 @@ if __name__ == '__main__':
     cifar_test_set() # load cifar datatset 
 
     models = [
-        ('CNN', SimpleCNN(), 0.001)]
+        ('CNN', SimpleCNN(), 0.001),
+        ('CNN', ModifiedCNN(), 0.001)]
 
     attacks = [
         ('No attack', AbsentAttack()),
