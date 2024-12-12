@@ -40,7 +40,7 @@ def client_fn_fn(module: Module):
     def client_fn(context: Context):
         partition_id = int(context.node_config['partition-id'])
         train_loaders, test_loader = cifar_dataloaders(int(context.node_config['num-partitions']))
-        flower_client = FlowerClient(module, train_loaders[partition_id], local_epochs=1, learning_rate=0.01)
+        flower_client = FlowerClient(module, train_loaders[partition_id], local_epochs=1, learning_rate=0.001)
         return flower_client.to_client()
     
     return client_fn
