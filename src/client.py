@@ -36,11 +36,11 @@ class FlowerClient(NumPyClient):
         return 0.0, len(self.trainloader.dataset), {}
 
 
-def client_fn_fn(module: Module):
+def client_fn_fn(module: Module, learning_rate=0.001):
     def client_fn(context: Context):
         partition_id = int(context.node_config['partition-id'])
         train_loaders, test_loader = cifar_dataloaders(int(context.node_config['num-partitions']))
-        flower_client = FlowerClient(module, train_loaders[partition_id], local_epochs=1, learning_rate=0.001)
+        flower_client = FlowerClient(module, train_loaders[partition_id], local_epochs=1, learning_rate=learning_rate)
         return flower_client.to_client()
     
     return client_fn

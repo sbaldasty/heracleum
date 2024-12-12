@@ -20,7 +20,7 @@ OUTPUT_FILE = './out/poisoneffect.csv'
 N_HONEST_CLIENTS = 10
 N_ROUNDS = 30
 N_CORRUPT_CLIENTS_START = 0
-N_CORRUPT_CLIENTS_END = 0
+N_CORRUPT_CLIENTS_END = 4
 N_CORRUPT_CLIENTS_STEP = 1
 
 NOISE_ATTACK_MEAN = 0.0
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     cifar_test_set() # load cifar datatset 
 
     models = [
-        ('CNN', SimpleCNN())]
+        ('CNN', SimpleCNN(), 0.001)]
 
     attacks = [
         ('No attack', AbsentAttack()),
@@ -60,14 +60,14 @@ if __name__ == '__main__':
 
     corrupt_clients_range = range(N_CORRUPT_CLIENTS_START, N_CORRUPT_CLIENTS_END + 1, N_CORRUPT_CLIENTS_STEP)
     experiments = []
-    for (model_name, model), (attack_name, attack_obj), (defense_name, defense_obj), n_corrupt in product(models, attacks, defenses, corrupt_clients_range):
+    for (model_name, model, learning_rate), (attack_name, attack_obj), (defense_name, defense_obj), n_corrupt in product(models, attacks, defenses, corrupt_clients_range):
         n_clients = N_HONEST_CLIENTS + n_corrupt
         accusation_counter = Counter()
         corrupt_client_ids = [None] * n_corrupt
         server = make_cifar_server(model, attack_obj, defense_obj, accusation_counter, corrupt_client_ids, n_clients=n_clients)
 
         start_simulation(
-            client_fn=client_fn_fn(model),
+            client_fn=client_fn_fn(model, learning_rate),
             num_clients=n_clients,
             server=server,
             config=ServerConfig(num_rounds=N_ROUNDS),

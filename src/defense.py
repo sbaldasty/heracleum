@@ -39,13 +39,13 @@ class NormBallDefense(Defense):
     def __init__(self, n_clients: int):
         self.n_clients = n_clients
 
-    def on_model_update(self, model: Module):
+    def on_model_update(self, model: Module, learning_rate=0.001):
         model = deepcopy(model)
         public_dataset = cifar_test_set()
         loader = DataLoader(public_dataset, batch_size=1, shuffle=False)
         state = model.state_dict()
         loss_fn = torch.nn.CrossEntropyLoss()
-        optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+        optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
         public_model_updates = []
         for i, (inputs, labels) in itertools.islice(enumerate(loader), PUBLIC_DATASET_SIZE):
             labels = labels.unsqueeze(1)
