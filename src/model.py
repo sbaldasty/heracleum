@@ -53,26 +53,32 @@ class ModifiedCNN(Module):
 
     def forward(self, x):
         x = self.conv1(x)
-        x = self.bn1(x)
+        if x.dim() == 4:
+            x = self.bn1(x)
         x = F.relu(x)
         x = self.conv2(x)
-        x = self.bn2(x)
+        if x.dim() == 4:
+            x = self.bn2(x)
         x = F.relu(x)
         x = self.pool1(x)
 
         x = self.conv3(x)
-        x = self.bn3(x)
+        if x.dim() == 4:
+            x = self.bn3(x)
         x = F.relu(x)
         x = self.conv4(x)
-        x = self.bn3(x)
+        if x.dim() == 4:
+            x = self.bn3(x)
         x = F.relu(x)
         x = self.pool1(x)
 
         x = self.conv5(x)
-        x = self.bn4(x)
+        if x.dim() == 4:
+            x = self.bn4(x)
         x = F.relu(x)
         x = self.conv6(x)
-        x = self.bn4(x)
+        if x.dim() == 4:
+            x = self.bn4(x)
         x = F.relu(x)
         x = self.pool1(x)
         
