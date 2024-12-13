@@ -18,10 +18,10 @@ from src.util import test
 from src.dataset import cifar_test_set
 
 OUTPUT_FILE = './out/poisoneffect.csv'
-N_HONEST_CLIENTS = 10
-N_ROUNDS = 30
-N_CORRUPT_CLIENTS_START = 0
-N_CORRUPT_CLIENTS_END = 4
+N_HONEST_CLIENTS = 3
+N_ROUNDS = 2
+N_CORRUPT_CLIENTS_START = 1
+N_CORRUPT_CLIENTS_END = 1
 N_CORRUPT_CLIENTS_STEP = 1
 
 NOISE_ATTACK_MEAN = 0.0
@@ -47,14 +47,14 @@ if __name__ == '__main__':
     cifar_test_set() # load cifar datatset 
 
     models = [
-        ('Simple CNN', SimpleCNN(), 0.001),
+        #('Simple CNN', SimpleCNN(), 0.001),
         ('Modified CNN', ModifiedCNN(), 0.001)]
 
     attacks = [
         ('No attack', AbsentAttack()),
-        ('Sign flipping', SignFlipAttack()),
-        (f'Scaling (factor={SCALING_ATTACK_FACTOR})', ScalingAttack(SCALING_ATTACK_FACTOR)),
-        (f'Gaussian noise (mu={NOISE_ATTACK_MEAN}, sigma={NOISE_ATTACK_STDEV})', GaussianNoiseAttack(NOISE_ATTACK_MEAN, NOISE_ATTACK_STDEV))]
+        #('Sign flipping', SignFlipAttack()),
+        (f'Scaling (factor={SCALING_ATTACK_FACTOR})', ScalingAttack(SCALING_ATTACK_FACTOR))]
+        #(f'Gaussian noise (mu={NOISE_ATTACK_MEAN}, sigma={NOISE_ATTACK_STDEV})', GaussianNoiseAttack(NOISE_ATTACK_MEAN, NOISE_ATTACK_STDEV))]
 
     defenses = [
         ('No defense', AbsentDefense()),
@@ -73,7 +73,7 @@ if __name__ == '__main__':
             num_clients=n_clients,
             server=server,
             config=ServerConfig(num_rounds=N_ROUNDS),
-            client_resources={'num_cpus': 1, 'num_gpus': 1})
+            client_resources={'num_cpus': 1, 'num_gpus': 0})
 
         loss, accuracy = test(model, max_clients)
 
